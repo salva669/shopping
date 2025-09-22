@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'schoolapp',
+    'shopapp',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'schoolapp.LoginCheckMiddleWare.LoginCheckMiddleWare'
 ]
 
-ROOT_URLCONF = 'school.urls'
+ROOT_URLCONF = 'shop.urls'
 
 TEMPLATES = [
     {
@@ -73,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'school.wsgi.application'
+WSGI_APPLICATION = 'shop.wsgi.application'
 
 
 # Database
@@ -82,9 +82,9 @@ WSGI_APPLICATION = 'school.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'student_management_system',
-        'USER': 'student_management_system',
-        'PASSWORD': 'student_management_password',
+        'NAME': 'shop_database',
+        'USER': 'admin',
+        'PASSWORD': 'Admin123',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -135,8 +135,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTHENTICATION_BACKENDS=['schoolapp.EmailBackEnd.EmailBackEnd']
-AUTH_USER_MODEL="schoolapp.CustomUser"
+AUTHENTICATION_BACKENDS=['shopapp.EmailBackEnd.EmailBackEnd']
+AUTH_USER_MODEL="shopapp.CustomUser"
 
 # EMAIL_HOST="smtp.gmail.com"
 # EMAIl_PORT=587
