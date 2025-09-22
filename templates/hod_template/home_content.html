@@ -1,0 +1,272 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}
+Home
+{% endblock page_title %}
+{% block main_content %}
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+          <div class="row">
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-info">
+              <div class="inner">
+                <h3>{{ student_count }}</h3>
+
+                <p>Total Students</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-pie-graph"></i>
+              </div>
+              <a href="{% url 'manage_student' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-success">
+              <div class="inner">
+                <h3>{{ staff_count }}</h3>
+
+                <p>Total Staffs</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-pie-graph"></i>
+              </div>
+              <a href="{% url 'manage_staff' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-warning">
+              <div class="inner">
+                <h3>{{ course_count }}</h3>
+
+                <p>Total Course</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-pie-graph"></i>
+              </div>
+              <a href="{% url 'manage_course' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-danger">
+              <div class="inner">
+                <h3>{{ subject_count }}</h3>
+
+                <p>Total Subject</p>
+              </div>
+              <div class="icon">
+                <i class="ion ion-pie-graph"></i>
+              </div>
+              <a href="{% url 'manage_subject' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+          </div>
+          <!-- ./col -->
+        </div>
+          <div class="row">
+              <div class="col-lg-6">
+                <div class="card card-danger">
+                  <div class="card-header">
+                    <h3 class="card-title">Student and Staff Chart</h3>
+
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                      </button>
+                      <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="pieChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title">Total Subjects per Course (Bar Chart)</h3>
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                      </button>
+                      <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="barChart" style="min-height: 300px; height: 300px; max-height: 400px; width: 100%;"></canvas>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+              </div>
+              
+          </div>
+          <div class="row">
+              <div class="col-lg-6">
+                 <div class="card card-info">
+                  <div class="card-header">
+                    <h3 class="card-title">Total Student in Each Course</h3>
+
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                      </button>
+                      <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="pieChart3" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+              </div>
+              <div class="col-lg-6">
+                 <div class="card card-warning">
+                  <div class="card-header">
+                    <h3 class="card-title">Total Student in Each Subject</h3>
+
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                      </button>
+                      <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="pieChart4" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+              </div>
+          </div>
+          
+          
+      </div>
+    </section>
+    <!-- /.content -->
+{% endblock main_content %}
+{% block custom_js %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<!-- Load dependencies -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+  $(document).ready(function() {
+    // -------- Pie Chart: Student vs Staff -------- //
+    var studentCount = Number("{{ student_count|default:'0' }}");
+    var staffCount = Number("{{ staff_count|default:'0' }}");
+
+    var pieChartCanvas = $('#pieChart').get(0);
+    if (!pieChartCanvas) {
+        console.error("Canvas element with id 'pieChart' not found.");
+        return;
+    }
+
+    var pieCtx = pieChartCanvas.getContext('2d');
+
+    if (!isNaN(studentCount) && !isNaN(staffCount)) {
+        var pieData = {
+            labels: ['Students', 'Staff'],
+            datasets: [{
+                data: [studentCount, staffCount],
+                backgroundColor: ['#00c0ef', '#00a65a'],
+            }]
+        };
+
+        var pieChart = new Chart(pieCtx, {
+            type: 'pie',
+            data: pieData,
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    datalabels: {
+                        formatter: (value, context) => {
+                            const data = context.chart.data.datasets[0].data;
+                            const total = data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return percentage + '%';
+                        },
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    } else {
+        console.error("Invalid data for pie chart.");
+    }
+
+    // -------- Bar Chart: Subjects per Course -------- //
+    try {
+        var subject_count_list = {{ subject_count_list|safe }};
+        var course_name_list = {{ course_name_list|safe }};
+
+        var barChartCanvas = $('#barChart').get(0);
+        if (!barChartCanvas) {
+            console.error("Canvas element with id 'barChart' not found.");
+            return;
+        }
+
+        var barCtx = barChartCanvas.getContext('2d');
+
+        var barData = {
+            labels: course_name_list,
+            datasets: [{
+                label: 'Number of Subjects',
+                data: subject_count_list,
+                backgroundColor: '#3c8dbc',
+                borderColor: '#2c6ba0',
+                borderWidth: 1
+            }]
+        };
+
+        var barOptions = {
+            maintainAspectRatio: false,
+            responsive: true,
+            
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 30
+                    }
+                }
+            }
+        };
+
+        var barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: barData,
+            options: barOptions,
+            
+        });
+    } catch (err) {
+        console.error("Error rendering bar chart:", err);
+    }
+  });
+</script>
+
+{% endblock custom_js %}
