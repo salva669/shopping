@@ -23,7 +23,7 @@
     <!-- /.login-logo -->
     <div class="card">
       <div class="card-body login-card-body">
-        <p class="login-box-msg">Sign in to Duka Langu System</p>
+        <p class="login-box-msg">Ingia Kwenye Duka Langu</p>
   
         <form action="/doLogin" method="post">
             {% csrf_token %}
@@ -46,11 +46,11 @@
           <div class="row">
             <!-- /.col -->
             <div class="col-12">
-              <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+              <button type="submit" class="btn btn-primary btn-block">Ingia</button>
             </div><!-- /.col -->
           </div>
           <div class="col-12 text-center">
-            <a href="{% url 'password_reset' %}">Reset Password</a>
+            <a href="{% url 'password_reset' %}">Badili Password</a>
           </div>
           <div class="row">
             {% if messages %}

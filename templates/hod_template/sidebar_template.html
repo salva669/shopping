@@ -4,7 +4,7 @@
     <a href="index3.html" class="brand-link">
       <img src="{% static 'dist/img/AdminLTELogo.png' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
            style="opacity: .8">
-      <span class="brand-text font-weight-light">SMS</span>
+      <span class="brand-text font-weight-light">Duka Langu</span>
     </a>
     <!-- Sidebar -->
     <div class="sidebar">
@@ -55,7 +55,7 @@
             <a href="{% url 'add_student' %}" class="nav-link {% if request.path == add_student %} active {% endif %}">
               <i class="nav-icon fas fa-th"></i>
               <p>
-                Add Student
+                Add Bidhaa
               </p>
             </a>
           </li>
@@ -65,26 +65,7 @@
           <a href="{% url 'manage_student' %}" class="nav-link {% if request.path == manage_student %} active {% endif %} {% if request.path == edit_student %} active {% endif %}">
               <i class="nav-icon fas fa-th"></i>
               <p>
-                Manage Students
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-              {% url 'add_course' as add_course %}
-              <a href="{% url 'add_course' %}" class="nav-link {% if request.path == add_course %} active {% endif %}">
-              <i class="nav-icon fas fa-th"></i>
-              <p>
-                Add Course
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            {% url 'manage_course' as manage_course %}
-            {% url 'edit_course' course_id=id as edit_course %}
-          <a href="{% url 'manage_course' %}" class="nav-link {% if request.path == manage_course %} active {% endif %} {% if request.path == edit_course %} active {% endif %}">
-              <i class="nav-icon fas fa-th"></i>
-              <p>
-                Manage Course
+                Manage Bidhaa
               </p>
             </a>
           </li>
@@ -93,7 +74,7 @@
             <a href="{% url 'add_subject' %}" class="nav-link {% if request.path == add_subject %} active {% endif %}">
               <i class="nav-icon fas fa-th"></i>
               <p>
-                Add Subject
+                Add Kategory
               </p>
             </a>
           </li>
@@ -103,7 +84,7 @@
             <a href="{% url 'manage_subject' %}" class="nav-link {% if request.path == manage_subject %} active {% endif %} {% if request.path == edit_subject %} active {% endif %} ">
               <i class="nav-icon fas fa-th"></i>
               <p>
-                Manage Subject
+                Manage Kategory
               </p>
             </a>
           </li>
@@ -117,15 +98,6 @@
             </p>
           </a>
           </li>
-           <li class="nav-item">
-            {% url 'student_feedback_message' as student_feedback_message %}
-            <a href="{% url 'student_feedback_message' %}" class="nav-link {% if request.path == student_feedback_message %} active {% endif %}">
-              <i class="nav-icon fas fa-th"></i>
-              <p>
-                Student Feedback
-              </p>
-            </a>
-          </li>
          <li class="nav-item">
               {% url 'staff_leave_view' as staff_leave_view %}
          <a href="{% url 'staff_leave_view' %}" class="nav-link {% if request.path == staff_leave_view %} active {% endif %}">
@@ -136,14 +108,15 @@
          </a>
        </li>
        <li class="nav-item">
-        {% url 'student_leave_view' as student_leave_view %}
-     <a href="{% url 'student_leave_view' %}" class="nav-link {% if request.path == student_leave_view %} active {% endif %}">
-       <i class="nav-icon fas fa-th"></i>
-       <p>
-         Student Leave
-       </p>
-     </a>
-   </li>
+        {% url 'staff_feedback_message' as staff_feedback_message %}
+        <a href="{% url 'staff_feedback_message' %}" class="nav-link {% if request.path == staff_feedback_message %} active {% endif %}">
+        <i class="nav-icon fas fa-th"></i>
+        <p>
+          Reports
+          <!-- <span class="right badge badge-danger">New</span> -->
+        </p>
+      </a>
+      </li>
         </ul>
       </nav>
       <!-- /.sidebar-menu -->
