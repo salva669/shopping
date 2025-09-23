@@ -5,11 +5,11 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 #from shopapp.forms import AddStudentForm, EditStudentForm
-from shopapp.models import CustomUser, Staffs, Courses, Subjects, Students, FeedBackStudent, FeedBackStaffs, \
-    LeaveReportStudent, LeaveReportStaff
+from shopapp.models import CustomUser, Staffs, Courses, Subjects, Bidhaas, FeedBackStaffs, \
+    LeaveReportStaff
 
 def admin_home(request):
-    student_count=Students.objects.all().count()
+    bidhaa_count=Bidhaas.objects.all().count()
     staff_count=Staffs.objects.all().count()
     subject_count=Subjects.objects.all().count()
     course_count=Courses.objects.all().count()
@@ -17,22 +17,22 @@ def admin_home(request):
     course_all=Courses.objects.all()
     course_name_list=[]
     subject_count_list=[]
-    student_count_list_in_course=[]
+    bidhaa_count_list_in_course=[]
     for course in course_all:
         subjects=Subjects.objects.filter(course_id=course.id).count()
-        students=Students.objects.filter(course_id=course.id).count()
+        bidhaas=Bidhaas.objects.filter(course_id=course.id).count()
         course_name_list.append(course.course_name)
         subject_count_list.append(subjects)
-        student_count_list_in_course.append(students)
+        bidhaa_count_list_in_course.append(bidhaas)
 
     subjects_all=Subjects.objects.all()
     subject_list=[]
-    student_count_list_in_subject=[]
+    bidhaa_count_list_in_subject=[]
     for subject in subjects_all:
         course=Courses.objects.get(id=subject.course_id.id)
-        student_count=Students.objects.filter(course_id=course.id).count()
+        bidhaa_count=Bidhaas.objects.filter(course_id=course.id).count()
         subject_list.append(subject.subject_name)
-        student_count_list_in_subject.append(student_count)
+        bidhaa_count_list_in_subject.append(bidhaa_count)
 
     staffs=Staffs.objects.all()
     staff_name_list=[]
@@ -41,14 +41,14 @@ def admin_home(request):
         leaves=LeaveReportStaff.objects.filter(staff_id=staff.id,leave_status=1).count()
         staff_name_list.append(staff.admin.username)
 
-    students_all=Students.objects.all()
-    student_name_list=[]
-    for student in students_all:
-        leaves=LeaveReportStudent.objects.filter(student_id=student.id,leave_status=1).count()
-        student_name_list.append(student.admin.username)
+    bidhaas_all=Bidhaas.objects.all()
+    bidhaa_name_list=[]
+    for bidhaa in bidhaas_all:
+        leaves=LeaveReportStudent.objects.filter(bidhaa_id=bidhaa.id,leave_status=1).count()
+        bidhaa_name_list.append(bidhaa.admin.username)
 
 
-    return render(request,"hod_template/home_content.html",{"student_count":student_count,"staff_count":staff_count,"subject_count":subject_count,"course_count":course_count,"course_name_list":course_name_list,"subject_count_list":subject_count_list,"student_count_list_in_course":student_count_list_in_course,"student_count_list_in_subject":student_count_list_in_subject,"subject_list":subject_list,"staff_name_list":staff_name_list})
+    return render(request,"hod_template/home_content.html",{"bidhaa_count":bidhaa_count,"staff_count":staff_count,"subject_count":subject_count,"course_count":course_count,"course_name_list":course_name_list,"subject_count_list":subject_count_list,"bidhaa_count_list_in_course":bidhaa_count_list_in_course,"bidhaa_count_list_in_subject":bidhaa_count_list_in_subject,"subject_list":subject_list,"staff_name_list":staff_name_list})
 
 def add_staff(request):
     return render(request,"hod_template/add_staff_template.html")
@@ -90,11 +90,11 @@ def add_course_save(request):
             messages.error(request,"Failed To Add Course")
             return HttpResponseRedirect(reverse("add_course"))
 
-def add_student(request):
+def add_bidhaa(request):
     form=AddStudentForm()
-    return render(request,"hod_template/add_student_template.html",{"form":form})
+    return render(request,"hod_template/add_bidhaa_template.html",{"form":form})
 
-def add_student_save(request):
+def add_bidhaa_save(request):
     if request.method!="POST":
         return HttpResponse("Method Not Allowed")
     else:
@@ -118,22 +118,22 @@ def add_student_save(request):
 
             try:
                 user=CustomUser.objects.create_user(username=username,password=password,email=email,last_name=last_name,first_name=first_name,user_type=3)
-                user.students.address=address
+                user.bidhaas.address=address
                 course_obj=Courses.objects.get(id=course_id)
-                user.students.course_id=course_obj
-                user.students.session_start_year=session_start
-                user.students.session_end_year=session_end
-                user.students.gender=sex
-                user.students.profile_pic=profile_pic_url
+                user.bidhaas.course_id=course_obj
+                user.bidhaas.session_start_year=session_start
+                user.bidhaas.session_end_year=session_end
+                user.bidhaas.gender=sex
+                user.bidhaas.profile_pic=profile_pic_url
                 user.save()
-                messages.success(request,"Successfully Added Student")
-                return HttpResponseRedirect(reverse("add_student"))
+                messages.success(request,"Successfully Added Bidhaa")
+                return HttpResponseRedirect(reverse("add_bidhaa"))
             except:
-                messages.error(request,"Failed to Add Student")
-                return HttpResponseRedirect(reverse("add_student"))
+                messages.error(request,"Failed to Add Bidhaa")
+                return HttpResponseRedirect(reverse("add_bidhaa"))
         else:
             form=AddStudentForm(request.POST)
-            return render(request, "hod_template/add_student_template.html", {"form": form})
+            return render(request, "hod_template/add_bidhaa_template.html", {"form": form})
 
 def add_subject(request):
     courses=Courses.objects.all()
@@ -163,9 +163,9 @@ def manage_staff(request):
     staffs=Staffs.objects.all()
     return render(request,"hod_template/manage_staff_template.html",{"staffs":staffs})
 
-def manage_student(request):
-    students=Students.objects.all()
-    return render(request,"hod_template/manage_student_template.html",{"students":students})
+def manage_bidhaa(request):
+    bidhaas=Bidhaas.objects.all()
+    return render(request,"hod_template/manage_bidhaa_template.html",{"bidhaas":bidhaas})
 
 def manage_course(request):
     courses=Courses.objects.all()
@@ -207,28 +207,28 @@ def edit_staff_save(request):
             messages.error(request,"Failed to Edit Staff")
             return HttpResponseRedirect(reverse("edit_staff",kwargs={"staff_id":staff_id}))
 
-def edit_student(request,student_id):
-    request.session['student_id']=student_id
-    student=Students.objects.get(admin=student_id)
+def edit_bidhaa(request,bidhaa_id):
+    request.session['bidhaa_id']=bidhaa_id
+    bidhaa=Bidhaas.objects.get(admin=bidhaa_id)
     form=EditStudentForm()
-    form.fields['email'].initial=student.admin.email
-    form.fields['first_name'].initial=student.admin.first_name
-    form.fields['last_name'].initial=student.admin.last_name
-    form.fields['username'].initial=student.admin.username
-    form.fields['address'].initial=student.address
-    form.fields['course'].initial=student.course_id.id
-    form.fields['sex'].initial=student.gender
-    form.fields['session_start'].initial=student.session_start_year
-    form.fields['session_end'].initial=student.session_end_year
-    return render(request,"hod_template/edit_student_template.html",{"form":form,"id":student_id,"username":student.admin.username})
+    form.fields['email'].initial=bidhaa.admin.email
+    form.fields['first_name'].initial=bidhaa.admin.first_name
+    form.fields['last_name'].initial=bidhaa.admin.last_name
+    form.fields['username'].initial=bidhaa.admin.username
+    form.fields['address'].initial=bidhaa.address
+    form.fields['course'].initial=bidhaa.course_id.id
+    form.fields['sex'].initial=bidhaa.gender
+    form.fields['session_start'].initial=bidhaa.session_start_year
+    form.fields['session_end'].initial=bidhaa.session_end_year
+    return render(request,"hod_template/edit_bidhaa_template.html",{"form":form,"id":bidhaa_id,"username":bidhaa.admin.username})
 
-def edit_student_save(request):
+def edit_bidhaa_save(request):
     if request.method!="POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
-        student_id=request.session.get("student_id")
-        if student_id==None:
-            return HttpResponseRedirect(reverse("manage_student"))
+        bidhaa_id=request.session.get("bidhaa_id")
+        if bidhaa_id==None:
+            return HttpResponseRedirect(reverse("manage_bidhaa"))
 
         form=EditStudentForm(request.POST,request.FILES)
         if form.is_valid():
@@ -252,33 +252,33 @@ def edit_student_save(request):
 
 
             try:
-                user=CustomUser.objects.get(id=student_id)
+                user=CustomUser.objects.get(id=bidhaa_id)
                 user.first_name=first_name
                 user.last_name=last_name
                 user.username=username
                 user.email=email
                 user.save()
 
-                student=Students.objects.get(admin=student_id)
-                student.address=address
-                student.session_start_year=session_start
-                student.session_end_year=session_end
-                student.gender=sex
+                bidhaa=Bidhaas.objects.get(admin=bidhaa_id)
+                bidhaa.address=address
+                bidhaa.session_start_year=session_start
+                bidhaa.session_end_year=session_end
+                bidhaa.gender=sex
                 course=Courses.objects.get(id=course_id)
-                student.course_id=course
+                bidhaa.course_id=course
                 if profile_pic_url!=None:
-                    student.profile_pic=profile_pic_url
-                student.save()
-                del request.session['student_id']
-                messages.success(request,"Successfully Edited Student")
-                return HttpResponseRedirect(reverse("edit_student",kwargs={"student_id":student_id}))
+                    bidhaa.profile_pic=profile_pic_url
+                bidhaa.save()
+                del request.session['bidhaa_id']
+                messages.success(request,"Successfully Edited bidhaa")
+                return HttpResponseRedirect(reverse("edit_bidhaa",kwargs={"bidhaa_id":bidhaa_id}))
             except:
-                messages.error(request,"Failed to Edit Student")
-                return HttpResponseRedirect(reverse("edit_student",kwargs={"student_id":student_id}))
+                messages.error(request,"Failed to Edit bidhaa")
+                return HttpResponseRedirect(reverse("edit_bidhaa",kwargs={"bidhaa_id":bidhaa_id}))
         else:
             form=EditStudentForm(request.POST)
-            student=Students.objects.get(admin=student_id)
-            return render(request,"hod_template/edit_student_template.html",{"form":form,"id":student_id,"username":student.admin.username})
+            bidhaa=Bidhaas.objects.get(admin=bidhaa_id)
+            return render(request,"hod_template/edit_bidhaa_template.html",{"form":form,"id":bidhaa_id,"username":bidhaa.admin.username})
 
 def edit_subject(request,subject_id):
     subject=Subjects.objects.get(id=subject_id)
@@ -334,12 +334,12 @@ def staff_feedback_message(request):
     feedbacks=FeedBackStaffs.objects.all()
     return render(request,"hod_template/staff_feedback_template.html",{"feedbacks":feedbacks})
 
-def student_feedback_message(request):
+def bidhaa_feedback_message(request):
     feedbacks=FeedBackStudent.objects.all()
-    return render(request,"hod_template/student_feedback_template.html",{"feedbacks":feedbacks})
+    return render(request,"hod_template/bidhaa_feedback_template.html",{"feedbacks":feedbacks})
 
 @csrf_exempt
-def student_feedback_message_replied(request):
+def bidhaa_feedback_message_replied(request):
     feedback_id=request.POST.get("id")
     feedback_message=request.POST.get("message")
 
@@ -368,21 +368,21 @@ def staff_leave_view(request):
     leaves=LeaveReportStaff.objects.all()
     return render(request,"hod_template/staff_leave_view.html",{"leaves":leaves})
 
-def student_leave_view(request):
+def bidhaa_leave_view(request):
     leaves=LeaveReportStudent.objects.all()
-    return render(request,"hod_template/student_leave_view.html",{"leaves":leaves})
+    return render(request,"hod_template/bidhaa_leave_view.html",{"leaves":leaves})
 
-def student_approve_leave(request,leave_id):
+def bidhaa_approve_leave(request,leave_id):
     leave=LeaveReportStudent.objects.get(id=leave_id)
     leave.leave_status=1
     leave.save()
-    return HttpResponseRedirect(reverse("student_leave_view"))
+    return HttpResponseRedirect(reverse("bidhaa_leave_view"))
 
-def student_disapprove_leave(request,leave_id):
+def bidhaa_disapprove_leave(request,leave_id):
     leave=LeaveReportStudent.objects.get(id=leave_id)
     leave.leave_status=2
     leave.save()
-    return HttpResponseRedirect(reverse("student_leave_view"))
+    return HttpResponseRedirect(reverse("bidhaa_leave_view"))
 
 
 def staff_approve_leave(request,leave_id):
@@ -410,10 +410,10 @@ def send_staff_notification(request):
     url="https://fcm.googleapis.com/fcm/send"
     body={
         "notification":{
-            "title":"Student Management System",
+            "title":"bidhaa Management System",
             "body":message,
-            "click_action":"https://studentmanagementsystem22.herokuapp.com/staff_all_notification",
-            "icon":"http://studentmanagementsystem22.herokuapp.com/static/dist/img/user2-160x160.jpg"
+            "click_action":"https://bidhaamanagementsystem22.herokuapp.com/staff_all_notification",
+            "icon":"http://bidhaamanagementsystem22.herokuapp.com/static/dist/img/user2-160x160.jpg"
         },
         "to":token
     }

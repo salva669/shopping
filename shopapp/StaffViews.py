@@ -8,7 +8,7 @@ from django.forms import model_to_dict
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from shopapp.models import Subjects, Students, LeaveReportStaff, Staffs, FeedBackStaffs, CustomUser, Courses, NotificationStaffs
+from shopapp.models import Subjects, Bidhaas, LeaveReportStaff, Staffs, FeedBackStaffs, CustomUser, Courses, NotificationStaffs
 
 def staff_home(request):
     #For Fetch All Student Under Staff
@@ -24,7 +24,7 @@ def staff_home(request):
         if course_id not in final_course:
             final_course.append(course_id)
 
-    students_count=Students.objects.filter(course_id__in=final_course).count()
+    students_count=Bidhaas.objects.filter(course_id__in=final_course).count()
 
     #Fetch All Approve Leave
     staff=Staffs.objects.get(admin=request.user.id)
