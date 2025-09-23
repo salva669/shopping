@@ -164,7 +164,7 @@ Home
 <script>
   $(document).ready(function() {
     // -------- Pie Chart: Student vs Staff -------- //
-    var studentCount = Number("{{ student_count|default:'0' }}");
+    var bidhaaCount = Number("{{ bidhaa_count|default:'0' }}");
     var staffCount = Number("{{ staff_count|default:'0' }}");
 
     var pieChartCanvas = $('#pieChart').get(0);
@@ -175,11 +175,11 @@ Home
 
     var pieCtx = pieChartCanvas.getContext('2d');
 
-    if (!isNaN(studentCount) && !isNaN(staffCount)) {
+    if (!isNaN(bidhaaCount) && !isNaN(staffCount)) {
         var pieData = {
-            labels: ['Students', 'Staff'],
+            labels: ['Bidhaas', 'Staff'],
             datasets: [{
-                data: [studentCount, staffCount],
+                data: [bidhaaCount, staffCount],
                 backgroundColor: ['#00c0ef', '#00a65a'],
             }]
         };

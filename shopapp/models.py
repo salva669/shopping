@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.validators import MinValueValidator
 
 # Create your models here.
 class CustomUser(AbstractUser):
@@ -41,18 +42,17 @@ class Subjects(models.Model):
 
 class Bidhaas(models.Model):
     id=models.AutoField(primary_key=True)
-    admin=models.OneToOneField(CustomUser,on_delete=models.CASCADE)
-    gender=models.CharField(max_length=255)
+    jina=models.CharField(max_length=255)
+    category=models.CharField(max_length=255)
     profile_pic=models.FileField()
-    address=models.TextField()
-    course_id=models.ForeignKey(Courses,on_delete=models.DO_NOTHING)
-    session_start_year=models.DateField()
-    session_end_year=models.DateField()
+    quantity=models.PositiveIntegerField(default=0)
+    alert_quantity=models.PositiveIntegerField(default=0)
+    code=models.CharField(max_length=255)
+    brand=models.CharField(max_length=255)
+    price=models.DecimalField(max_digits=10, decimal_places=2)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
-
-
 
 class LeaveReportStaff(models.Model):
     id = models.AutoField(primary_key=True)

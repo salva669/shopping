@@ -4,9 +4,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-#from shopapp.forms import AddStudentForm, EditStudentForm
+#from shopapp.forms import AddBidhaaForm, EditBidhaaForm
 from shopapp.models import CustomUser, Staffs, Courses, Subjects, Bidhaas, FeedBackStaffs, \
     LeaveReportStaff
+from .forms import AddBidhaaForm
 
 def admin_home(request):
     bidhaa_count=Bidhaas.objects.all().count()
@@ -44,7 +45,7 @@ def admin_home(request):
     bidhaas_all=Bidhaas.objects.all()
     bidhaa_name_list=[]
     for bidhaa in bidhaas_all:
-        leaves=LeaveReportStudent.objects.filter(bidhaa_id=bidhaa.id,leave_status=1).count()
+        leaves=LeaveReportBidhaa.objects.filter(bidhaa_id=bidhaa.id,leave_status=1).count()
         bidhaa_name_list.append(bidhaa.admin.username)
 
 
@@ -91,14 +92,14 @@ def add_course_save(request):
             return HttpResponseRedirect(reverse("add_course"))
 
 def add_bidhaa(request):
-    form=AddStudentForm()
+    form=AddBidhaaForm()
     return render(request,"hod_template/add_bidhaa_template.html",{"form":form})
 
 def add_bidhaa_save(request):
     if request.method!="POST":
         return HttpResponse("Method Not Allowed")
     else:
-        form=AddStudentForm(request.POST,request.FILES)
+        form=AddBidhaaForm(request.POST,request.FILES)
         if form.is_valid():
             first_name=form.cleaned_data["first_name"]
             last_name=form.cleaned_data["last_name"]
@@ -132,7 +133,7 @@ def add_bidhaa_save(request):
                 messages.error(request,"Failed to Add Bidhaa")
                 return HttpResponseRedirect(reverse("add_bidhaa"))
         else:
-            form=AddStudentForm(request.POST)
+            form=AddBidhaaForm(request.POST)
             return render(request, "hod_template/add_bidhaa_template.html", {"form": form})
 
 def add_subject(request):
@@ -210,7 +211,7 @@ def edit_staff_save(request):
 def edit_bidhaa(request,bidhaa_id):
     request.session['bidhaa_id']=bidhaa_id
     bidhaa=Bidhaas.objects.get(admin=bidhaa_id)
-    form=EditStudentForm()
+    form=EditBidhaaForm()
     form.fields['email'].initial=bidhaa.admin.email
     form.fields['first_name'].initial=bidhaa.admin.first_name
     form.fields['last_name'].initial=bidhaa.admin.last_name
@@ -230,7 +231,7 @@ def edit_bidhaa_save(request):
         if bidhaa_id==None:
             return HttpResponseRedirect(reverse("manage_bidhaa"))
 
-        form=EditStudentForm(request.POST,request.FILES)
+        form=EditBidhaaForm(request.POST,request.FILES)
         if form.is_valid():
             first_name = form.cleaned_data["first_name"]
             last_name = form.cleaned_data["last_name"]
@@ -276,7 +277,7 @@ def edit_bidhaa_save(request):
                 messages.error(request,"Failed to Edit bidhaa")
                 return HttpResponseRedirect(reverse("edit_bidhaa",kwargs={"bidhaa_id":bidhaa_id}))
         else:
-            form=EditStudentForm(request.POST)
+            form=EditBidhaaForm(request.POST)
             bidhaa=Bidhaas.objects.get(admin=bidhaa_id)
             return render(request,"hod_template/edit_bidhaa_template.html",{"form":form,"id":bidhaa_id,"username":bidhaa.admin.username})
 
@@ -334,23 +335,6 @@ def staff_feedback_message(request):
     feedbacks=FeedBackStaffs.objects.all()
     return render(request,"hod_template/staff_feedback_template.html",{"feedbacks":feedbacks})
 
-def bidhaa_feedback_message(request):
-    feedbacks=FeedBackStudent.objects.all()
-    return render(request,"hod_template/bidhaa_feedback_template.html",{"feedbacks":feedbacks})
-
-@csrf_exempt
-def bidhaa_feedback_message_replied(request):
-    feedback_id=request.POST.get("id")
-    feedback_message=request.POST.get("message")
-
-    try:
-        feedback=FeedBackStudent.objects.get(id=feedback_id)
-        feedback.feedback_reply=feedback_message
-        feedback.save()
-        return HttpResponse("True")
-    except:
-        return HttpResponse("False")
-
 @csrf_exempt
 def staff_feedback_message_replied(request):
     feedback_id=request.POST.get("id")
@@ -367,23 +351,6 @@ def staff_feedback_message_replied(request):
 def staff_leave_view(request):
     leaves=LeaveReportStaff.objects.all()
     return render(request,"hod_template/staff_leave_view.html",{"leaves":leaves})
-
-def bidhaa_leave_view(request):
-    leaves=LeaveReportStudent.objects.all()
-    return render(request,"hod_template/bidhaa_leave_view.html",{"leaves":leaves})
-
-def bidhaa_approve_leave(request,leave_id):
-    leave=LeaveReportStudent.objects.get(id=leave_id)
-    leave.leave_status=1
-    leave.save()
-    return HttpResponseRedirect(reverse("bidhaa_leave_view"))
-
-def bidhaa_disapprove_leave(request,leave_id):
-    leave=LeaveReportStudent.objects.get(id=leave_id)
-    leave.leave_status=2
-    leave.save()
-    return HttpResponseRedirect(reverse("bidhaa_leave_view"))
-
 
 def staff_approve_leave(request,leave_id):
     leave=LeaveReportStaff.objects.get(id=leave_id)
