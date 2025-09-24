@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 #from shopapp.forms import AddBidhaaForm, EditBidhaaForm
 from shopapp.models import CustomUser, Staffs, Courses, Subjects, Bidhaas, FeedBackStaffs, \
     LeaveReportStaff
-from .forms import AddBidhaaForm
+from .forms import AddBidhaaForm, EditBidhaaForm
 
 def admin_home(request):
     bidhaa_count=Bidhaas.objects.all().count()
@@ -95,45 +95,49 @@ def add_bidhaa(request):
     return render(request,"hod_template/add_bidhaa_template.html",{"form":form})
 
 def add_bidhaa_save(request):
-    if request.method!="POST":
+    if request.method != "POST":
         return HttpResponse("Method Not Allowed")
     else:
-        form=AddBidhaaForm(request.POST,request.FILES)
+        form = AddBidhaaForm(request.POST, request.FILES)
         if form.is_valid():
-            first_name=form.cleaned_data["first_name"]
-            last_name=form.cleaned_data["last_name"]
-            username=form.cleaned_data["username"]
-            email=form.cleaned_data["email"]
-            password=form.cleaned_data["password"]
-            address=form.cleaned_data["address"]
-            session_start=form.cleaned_data["session_start"]
-            session_end=form.cleaned_data["session_end"]
-            course_id=form.cleaned_data["course"]
-            sex=form.cleaned_data["sex"]
+            jina = form.cleaned_data["jina"]
+            category = form.cleaned_data["category"]
+            brand = form.cleaned_data["brand"]
+            quantity = form.cleaned_data["quantity"]
+            alert_quantity = form.cleaned_data["alert_quantity"]
+            price = form.cleaned_data["price"]
+            code = form.cleaned_data["code"]
+            profile_pic = request.FILES['profile_pic']
 
-            profile_pic=request.FILES['profile_pic']
-            fs=FileSystemStorage()
-            filename=fs.save(profile_pic.name,profile_pic)
-            profile_pic_url=fs.url(filename)
+            fs = FileSystemStorage()
+            filename = fs.save(profile_pic.name, profile_pic)
+            profile_pic_url = fs.url(filename)
 
             try:
-                user=CustomUser.objects.create_user(username=username,password=password,email=email,last_name=last_name,first_name=first_name,user_type=3)
-                user.bidhaas.address=address
-                course_obj=Courses.objects.get(id=course_id)
-                user.bidhaas.course_id=course_obj
-                user.bidhaas.session_start_year=session_start
-                user.bidhaas.session_end_year=session_end
-                user.bidhaas.gender=sex
-                user.bidhaas.profile_pic=profile_pic_url
-                user.save()
-                messages.success(request,"Successfully Added Bidhaa")
+                bidhaa = Bidhaas(
+                    jina=jina,
+                    category=category,
+                    brand=brand,
+                    quantity=quantity,
+                    alert_quantity=alert_quantity,
+                    price=price,
+                    code=code,
+                    profile_pic=profile_pic_url
+                )
+                bidhaa.save()
+
+                messages.success(request, "Successfully Added Bidhaa")
                 return HttpResponseRedirect(reverse("add_bidhaa"))
-            except:
-                messages.error(request,"Failed to Add Bidhaa")
+            except Exception as e:
+                messages.error(request, f"Failed to Add Bidhaa: {e}")
                 return HttpResponseRedirect(reverse("add_bidhaa"))
         else:
-            form=AddBidhaaForm(request.POST)
-            return render(request, "hod_template/add_bidhaa_template.html", {"form": form})
+            return render(
+                request,
+                "hod_template/add_bidhaa_template.html",
+                {"form": form}
+            )
+
 
 def add_subject(request):
     courses=Courses.objects.all()
@@ -207,78 +211,88 @@ def edit_staff_save(request):
             messages.error(request,"Failed to Edit Staff")
             return HttpResponseRedirect(reverse("edit_staff",kwargs={"staff_id":staff_id}))
 
-def edit_bidhaa(request,bidhaa_id):
-    request.session['bidhaa_id']=bidhaa_id
-    bidhaa=Bidhaas.objects.get(admin=bidhaa_id)
-    form=EditBidhaaForm()
-    form.fields['email'].initial=bidhaa.admin.email
-    form.fields['first_name'].initial=bidhaa.admin.first_name
-    form.fields['last_name'].initial=bidhaa.admin.last_name
-    form.fields['username'].initial=bidhaa.admin.username
-    form.fields['address'].initial=bidhaa.address
-    form.fields['course'].initial=bidhaa.course_id.id
-    form.fields['sex'].initial=bidhaa.gender
-    form.fields['session_start'].initial=bidhaa.session_start_year
-    form.fields['session_end'].initial=bidhaa.session_end_year
-    return render(request,"hod_template/edit_bidhaa_template.html",{"form":form,"id":bidhaa_id,"username":bidhaa.admin.username})
+def edit_bidhaa(request, bidhaa_id):
+    request.session['bidhaa_id'] = bidhaa_id
+    bidhaa = Bidhaas.objects.get(id=bidhaa_id)
+
+    form = EditBidhaaForm(initial={
+        "jina": bidhaa.jina,
+        "category": bidhaa.category,
+        "quantity": bidhaa.quantity,
+        "alert_quantity": bidhaa.alert_quantity,
+        "code": bidhaa.code,
+        "brand": bidhaa.brand,
+        "price": bidhaa.price,
+    })
+
+    return render(
+        request,
+        "hod_template/edit_bidhaa_template.html",
+        {"form": form, "id": bidhaa_id, "jina": bidhaa.jina},
+    )
+
+
 
 def edit_bidhaa_save(request):
-    if request.method!="POST":
+    if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
-        bidhaa_id=request.session.get("bidhaa_id")
-        if bidhaa_id==None:
+        bidhaa_id = request.session.get("bidhaa_id")
+        if bidhaa_id is None:
             return HttpResponseRedirect(reverse("manage_bidhaa"))
 
-        form=EditBidhaaForm(request.POST,request.FILES)
+        form = EditBidhaaForm(request.POST, request.FILES)
         if form.is_valid():
-            first_name = form.cleaned_data["first_name"]
-            last_name = form.cleaned_data["last_name"]
-            username = form.cleaned_data["username"]
-            email = form.cleaned_data["email"]
-            address = form.cleaned_data["address"]
-            session_start = form.cleaned_data["session_start"]
-            session_end = form.cleaned_data["session_end"]
-            course_id = form.cleaned_data["course"]
-            sex = form.cleaned_data["sex"]
+            jina = form.cleaned_data["jina"]
+            category = form.cleaned_data["category"]
+            quantity = form.cleaned_data["quantity"]
+            alert_quantity = form.cleaned_data["alert_quantity"]
+            code = form.cleaned_data["code"]
+            brand = form.cleaned_data["brand"]
+            price = form.cleaned_data["price"]
 
-            if request.FILES.get('profile_pic',False):
-                profile_pic=request.FILES['profile_pic']
-                fs=FileSystemStorage()
-                filename=fs.save(profile_pic.name,profile_pic)
-                profile_pic_url=fs.url(filename)
+            # Handle profile picture
+            if request.FILES.get("profile_pic", False):
+                profile_pic = request.FILES["profile_pic"]
+                fs = FileSystemStorage()
+                filename = fs.save(profile_pic.name, profile_pic)
+                profile_pic_url = fs.url(filename)
             else:
-                profile_pic_url=None
-
+                profile_pic_url = None
 
             try:
-                user=CustomUser.objects.get(id=bidhaa_id)
-                user.first_name=first_name
-                user.last_name=last_name
-                user.username=username
-                user.email=email
-                user.save()
+                bidhaa = Bidhaas.objects.get(id=bidhaa_id)
+                bidhaa.jina = jina
+                bidhaa.category = category
+                bidhaa.quantity = quantity
+                bidhaa.alert_quantity = alert_quantity
+                bidhaa.code = code
+                bidhaa.brand = brand
+                bidhaa.price = price
 
-                bidhaa=Bidhaas.objects.get(admin=bidhaa_id)
-                bidhaa.address=address
-                bidhaa.session_start_year=session_start
-                bidhaa.session_end_year=session_end
-                bidhaa.gender=sex
-                course=Courses.objects.get(id=course_id)
-                bidhaa.course_id=course
-                if profile_pic_url!=None:
-                    bidhaa.profile_pic=profile_pic_url
+                if profile_pic_url is not None:
+                    bidhaa.profile_pic = profile_pic_url
+
                 bidhaa.save()
-                del request.session['bidhaa_id']
-                messages.success(request,"Successfully Edited bidhaa")
-                return HttpResponseRedirect(reverse("edit_bidhaa",kwargs={"bidhaa_id":bidhaa_id}))
-            except:
-                messages.error(request,"Failed to Edit bidhaa")
-                return HttpResponseRedirect(reverse("edit_bidhaa",kwargs={"bidhaa_id":bidhaa_id}))
+                del request.session["bidhaa_id"]
+
+                messages.success(request, "Successfully Edited bidhaa")
+                return HttpResponseRedirect(
+                    reverse("edit_bidhaa", kwargs={"bidhaa_id": bidhaa_id})
+                )
+            except Exception as e:
+                messages.error(request, f"Failed to Edit bidhaa: {e}")
+                return HttpResponseRedirect(
+                    reverse("edit_bidhaa", kwargs={"bidhaa_id": bidhaa_id})
+                )
         else:
-            form=EditBidhaaForm(request.POST)
-            bidhaa=Bidhaas.objects.get(admin=bidhaa_id)
-            return render(request,"hod_template/edit_bidhaa_template.html",{"form":form,"id":bidhaa_id,"username":bidhaa.admin.username})
+            bidhaa = Bidhaas.objects.get(id=bidhaa_id)
+            return render(
+                request,
+                "hod_template/edit_bidhaa_template.html",
+                {"form": form, "id": bidhaa_id, "jina": bidhaa.jina},
+            )
+
 
 def edit_subject(request,subject_id):
     subject=Subjects.objects.get(id=subject_id)
