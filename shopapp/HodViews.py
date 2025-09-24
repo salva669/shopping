@@ -45,7 +45,6 @@ def admin_home(request):
     bidhaas_all=Bidhaas.objects.all()
     bidhaa_name_list=[]
     for bidhaa in bidhaas_all:
-        leaves=LeaveReportBidhaa.objects.filter(bidhaa_id=bidhaa.id,leave_status=1).count()
         bidhaa_name_list.append(bidhaa.admin.username)
 
 
