@@ -15,7 +15,7 @@ class AddBidhaaForm(forms.Form):
     price=forms.IntegerField(label="Price",widget=forms.NumberInput(attrs={"class":"form-control"}))
     profile_pic=forms.FileField(label="Profile Pic",max_length=50,widget=forms.FileInput(attrs={"class":"form-control"}))
 
-class EditBidhaaForm(forms.Form):
+class EditBidhaaForm(forms.ModelForm):
     jina=forms.CharField(label="Jina la Bidhaa",max_length=50,widget=forms.TextInput(attrs={"class":"form-control"}))
     category=forms.CharField(label="Category",max_length=50,widget=forms.TextInput(attrs={"class":"form-control"}))
     quantity=forms.IntegerField(label="Quantity",widget=forms.NumberInput(attrs={"class":"form-control"}))
