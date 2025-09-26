@@ -1,13 +1,16 @@
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
-from django.http import HttpResponse, HttpResponseRedirect
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-#from shopapp.forms import AddBidhaaForm, EditBidhaaForm
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from shopapp.models import CustomUser, Staffs, Courses, Subjects, Bidhaas, FeedBackStaffs, \
     LeaveReportStaff
-from .forms import AddBidhaaForm, EditBidhaaForm
+from .forms import AddBidhaaForm, EditBidhaaForm, SearchBidhaaForm, BulkUpdateQuantityForm
 
 def admin_home(request):
     bidhaa_count=Bidhaas.objects.all().count()
@@ -63,15 +66,20 @@ def add_staff_save(request):
         email=request.POST.get("email")
         password=request.POST.get("password")
         address=request.POST.get("address")
+        
         try:
             user=CustomUser.objects.create_user(username=username,password=password,email=email,last_name=last_name,first_name=first_name,user_type=2)
             user.staffs.address=address
             user.save()
             messages.success(request,"Successfully Added Staff")
-            return HttpResponseRedirect(reverse("add_staff"))
+            return HttpResponseRedirect(
+                reverse("add_staff")
+                )
         except:
             messages.error(request,"Failed to Add Staff")
-            return HttpResponseRedirect(reverse("add_staff"))
+            return HttpResponseRedirect(
+                reverse("add_staff")
+                )
 
 def add_course(request):
     return render(request,"hod_template/add_course_template.html")
@@ -90,9 +98,34 @@ def add_course_save(request):
             messages.error(request,"Failed To Add Course")
             return HttpResponseRedirect(reverse("add_course"))
 
+@login_required
 def add_bidhaa(request):
-    form=AddBidhaaForm()
-    return render(request,"hod_template/add_bidhaa_template.html",{"form":form})
+    #view to add new bidhaa
+    if request.method == 'POST':
+        form = AddBidhaaForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                bidhaa = form.save()
+                messages.success(request, f'Successfully added "{bidhaa.jina}"')
+                return redirect('manage_bidhaa')
+            except Exception as e:
+                messages.error(request, f'Error adding bidhaa: {str(e)}')
+        
+        else:
+            messages.error(request, 'Please correct the errors below')
+
+    else:
+        form=AddBidhaaForm()
+
+    context = {
+        'form': form,
+        'page_title': 'Add New Bidhaa',
+        'button_text': 'Add Bidhaa',
+        'action_url': reverse('add_bidhaa')
+    }
+
+    #return render(request,"hod_template/add_bidhaa_template.html",{"form":form})
+    return render(request,"hod_template/add_bidhaa_template.html", context)
 
 def add_bidhaa_save(request):
     if request.method != "POST":
@@ -158,18 +191,82 @@ def add_subject_save(request):
             subject=Subjects(subject_name=subject_name,course_id=course,staff_id=staff)
             subject.save()
             messages.success(request,"Successfully Added Subject")
-            return HttpResponseRedirect(reverse("add_subject"))
+            return HttpResponseRedirect(
+                reverse("add_subject")
+                )
         except:
             messages.error(request,"Failed to Add Subject")
-            return HttpResponseRedirect(reverse("add_subject"))
+            return HttpResponseRedirect(
+                reverse("add_subject")
+                )
 
 def manage_staff(request):
     staffs=Staffs.objects.all()
     return render(request,"hod_template/manage_staff_template.html",{"staffs":staffs})
 
+@login_required
 def manage_bidhaa(request):
-    bidhaas=Bidhaas.objects.all()
-    return render(request,"hod_template/manage_bidhaa_template.html",{"bidhaas":bidhaas})
+    #view to display and search all bidhaa
+    search_query = request.GET.get('search', '')
+    category_filter = request.GET.get('category', '')
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    low_stock_only = request.GET.get('low_stock_only', False)
+
+    #Base queryset
+    bidhaas = Bidhaas.objects.all().order_by('-created_at')
+
+    #Apply search filters
+    if search_query:
+        bidhaas = bidhaas.filter(
+            Q(jina_icontains=search_query) |
+            Q(category_icontains=search_query) |
+            Q(brand_icontains=search_query) |
+            Q(code_icontains=search_query) 
+        )
+    
+    if category_filter:
+        bidhaas = bidhaas.filter(
+            category_icontains=category_filter
+        )
+
+    if min_price:
+        try:
+            bidhaas = bidhaas.filter(
+                price_gte=float(min_price)
+                )
+        except ValueError:
+            pass
+
+    if max_price:
+        try:
+            bidhaas = bidhaas.filter(
+                price_lte=float(max_price)
+                )
+        except ValueError:
+            pass
+
+    if low_stock_only:
+        #show items where quantity <= alert quantity
+        bidhaas = bidhaas.filter(
+            quantity_lter=models.F('alert_quantity')
+            )
+
+    #Pagination
+    paginator = Paginator(bidhaas, 10) # show 10 bidhaa per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'bidhaas': page_obj,
+        'search_form': SearchBidhaaForm(request.GET),
+        'is_paginated': page_obj.has_other_pages(),
+        'page_obj': page_obj,
+        'paginator': paginator,
+    }
+
+    #return render(request,"hod_template/manage_bidhaa_template.html",{"bidhaas":bidhaas})
+    return render(request,"hod_template/manage_bidhaa_template.html", context)
 
 def manage_course(request):
     courses=Courses.objects.all()
@@ -211,14 +308,36 @@ def edit_staff_save(request):
             messages.error(request,"Failed to Edit Staff")
             return HttpResponseRedirect(reverse("edit_staff",kwargs={"staff_id":staff_id}))
 
+@login_required
 def edit_bidhaa(request, bidhaa_id):
+    #view to edit existing bidhaa
     bidhaa = get_object_or_404(Bidhaas, id=bidhaa_id)
-    form = EditBidhaaForm(instance=bidhaa)
-    return render(request, "hod_template/edit_bidhaa_template.html", {
-        "form": form,
-        "id": bidhaa.id,
-        "jina": bidhaa.jina,
-    })
+    
+    if request.method == 'POST':
+        form = EditBidhaaForm(request.POST, request.FILES, instance=bidhaa)
+        if form.is_valid():
+            try:
+                updated_bidhaa = form.save()
+                messages.success(request, f'Successfully updated "{updated_bidhaa.jina}"')
+                return redirect('manage_bidhaa')
+            
+            except Exception as e:
+                messages.error(request, f'Error updating bidhaa: {str(e)}')
+
+        else:
+            messages.error(request, 'Please correct the errors below')
+    else:
+        form = EditBidhaaForm(instance=bidhaa)
+
+    context = {
+        'form': form,
+        'bidhaa': bidhaa,
+        'page_title': f'Edit {bidhaa.jina}',
+        'button_text': 'Update Bidhaa',
+        'action_url': reverse('edit_bidhaa', kwargs={'bidhaa_id': bidhaa_id})
+    }  
+
+    return render(request, "hod_template/edit_bidhaa_template.html", context)
 
 
 def edit_bidhaa_save(request, bidhaa_id):
