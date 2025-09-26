@@ -23,8 +23,8 @@ urlpatterns = [
     path('manage_subject', HodViews.manage_subject,name="manage_subject"),
     path('edit_staff/<str:staff_id>', HodViews.edit_staff,name="edit_staff"),
     path('edit_staff_save', HodViews.edit_staff_save,name="edit_staff_save"),
-    path('edit_bidhaa/<int:bidhaa_id>', HodViews.edit_bidhaa, name="edit_bidhaa"),
-    path('edit_bidhaa_save', HodViews.edit_bidhaa_save, name="edit_bidhaa_save"),
+    path('edit_bidhaa/<int:bidhaa_id>/', HodViews.edit_bidhaa, name="edit_bidhaa"),
+    path('edit_bidhaa_save/<int:bidhaa_id>/', HodViews.edit_bidhaa_save, name="edit_bidhaa_save"),
 
     path('edit_subject/<str:subject_id>', HodViews.edit_subject,name="edit_subject"),
     path('edit_subject_save', HodViews.edit_subject_save,name="edit_subject_save"),

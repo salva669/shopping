@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 #from shopapp.forms import AddBidhaaForm, EditBidhaaForm
@@ -212,35 +212,36 @@ def edit_staff_save(request):
             return HttpResponseRedirect(reverse("edit_staff",kwargs={"staff_id":staff_id}))
 
 def edit_bidhaa(request, bidhaa_id):
-    request.session['bidhaa_id'] = bidhaa_id
-    bidhaa = Bidhaas.objects.get(id=bidhaa_id)
-    # Use instance parameter to populate form with existing data
+    bidhaa = get_object_or_404(Bidhaas, id=bidhaa_id)
     form = EditBidhaaForm(instance=bidhaa)
     return render(request, "hod_template/edit_bidhaa_template.html", {
-        "form": form, 
-        "id": bidhaa_id, 
-        "jina": bidhaa.jina
+        "form": form,
+        "id": bidhaa.id,
+        "jina": bidhaa.jina,
     })
 
 
 def edit_bidhaa_save(request, bidhaa_id):
+    bidhaa = get_object_or_404(Bidhaas, id=bidhaa_id)
+
     if request.method != "POST":
-        return HttpResponse("Method not allowed")
+        messages.error(request, "Invalid request method")
+        return redirect("edit_bidhaa", bidhaa_id=bidhaa.id)
+
+    form = EditBidhaaForm(request.POST, request.FILES, instance=bidhaa)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Bidhaa updated successfully")
+        return redirect("edit_bidhaa", bidhaa_id=bidhaa.id)
     else:
-        # Example logic
-        try:
-            bidhaa = Bidhaas.objects.get(id=bidhaa_id)
-            form = EditBidhaaForm(request.POST, request.FILES, instance=bidhaa)
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Bidhaa updated successfully!")
-                return redirect('manage_bidhaa')
-            else:
-                messages.error(request, "Invalid form data.")
-                return redirect(f'/edit_bidhaa/{bidhaa_id}')
-        except Bidhaas.DoesNotExist:
-            messages.error(request, "Bidhaa not found.")
-            return redirect('manage_bidhaa')
+        messages.error(request, "Failed to update bidhaa. Please check the form.")
+        return render(request, "hod_template/edit_bidhaa_template.html", {
+            "form": form,
+            "id": bidhaa.id,
+            "jina": bidhaa.jina,
+        })
+
 
 
 def edit_subject(request,subject_id):
