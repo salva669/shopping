@@ -1,6 +1,6 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-Manage Student
+Manage Bidhaa
 {% endblock page_title %}
 {% block main_content %}
     <!-- Main content -->
@@ -10,8 +10,7 @@ Manage Student
           <div class="col-12">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Student Details</h3>
-
+                <h3 class="card-title">Taarifa za Bidhaa</h3>
                 <div class="card-tools">
                   <div class="input-group input-group-sm" style="width: 150px;">
                     <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
@@ -28,38 +27,30 @@ Manage Student
                   <thead>
                     <tr>
                       <th>ID</th>
-                      <th>First Name</th>
-                      <th>Last Name</th>
-                      <th>User Name</th>
-                      <th>Email</th>
-                      <th>Address</th>
-                      <th>Gender</th>
+                      <th>Jina la Bidhaa</th>
+                      <th>Category</th>
+                      <th>Brand</th>
+                      <th>Quantity</th>
+                      <th>Alert Quantity</th>
+                      <th>Price</th>
+                      <th>Code</th>
                       <th>Profile Pic</th>
-                      <th>Start Year</th>
-                      <th>End Year</th>
-                      <th>Course</th>
-                      <th>Last Login</th>
-                      <th>Date Joined</th>
                       <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                  {% for student in students %}
+                  {% for bidhaa in bidhaas %}
                     <tr>
-                      <td>{{ student.admin.id }}</td>
-                      <td>{{ student.admin.first_name }}</td>
-                      <td>{{ student.admin.last_name }}</td>
-                      <td>{{ student.admin.username }}</td>
-                      <td>{{ student.admin.email }}</td>
-                      <td>{{ student.address }}</td>
-                      <td>{{ student.gender }}</td>
-                      <td><img src="{{ student.profile_pic }}" style="width:100px"/></td>
-                      <td>{{ student.session_start_year }}</td>
-                      <td>{{ student.session_end_year }}</td>
-                      <td>{{ student.course_id.course_name }}</td>
-                      <td>{{ student.admin.last_login }}</td>
-                      <td>{{ student.admin.date_joined }}</td>
-                      <td><a href="{% url 'edit_student' student_id=student.admin.id %}" class="btn btn-success">Edit</a></td>
+                      <td>{{ bidhaa.id }}</td>
+                      <td>{{ bidhaa.jina }}</td>
+                      <td>{{ bidhaa.category }}</td>
+                      <td>{{ bidhaa.brand }}</td>
+                      <td>{{ bidhaa.quantity }}</td>
+                      <td>{{ bidhaa.alert_quantity }}</td>
+                      <td>{{ bidhaa.price }}</td>
+                      <td>{{ bidhaa.code }}</td>
+                      <td><img src="{{ bidhaa.profile_pic }}" style="width:100px"/></td>
+                      <td><a href="{% url 'edit_bidhaa' bidhaa_id=bidhaa.id %}" class="btn btn-success">Edit</a></td>
                     </tr>
                   {% endfor %}
                   </tbody>

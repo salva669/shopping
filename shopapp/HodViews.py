@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 #from shopapp.forms import AddBidhaaForm, EditBidhaaForm
@@ -45,7 +45,7 @@ def admin_home(request):
     bidhaas_all=Bidhaas.objects.all()
     bidhaa_name_list=[]
     for bidhaa in bidhaas_all:
-        bidhaa_name_list.append(bidhaa.admin.username)
+        bidhaa_name_list.append(bidhaa.jina)
 
 
     return render(request,"hod_template/home_content.html",{"bidhaa_count":bidhaa_count,"staff_count":staff_count,"subject_count":subject_count,"course_count":course_count,"course_name_list":course_name_list,"subject_count_list":subject_count_list,"bidhaa_count_list_in_course":bidhaa_count_list_in_course,"bidhaa_count_list_in_subject":bidhaa_count_list_in_subject,"subject_list":subject_list,"staff_name_list":staff_name_list})
@@ -214,84 +214,33 @@ def edit_staff_save(request):
 def edit_bidhaa(request, bidhaa_id):
     request.session['bidhaa_id'] = bidhaa_id
     bidhaa = Bidhaas.objects.get(id=bidhaa_id)
-
-    form = EditBidhaaForm(initial={
-        "jina": bidhaa.jina,
-        "category": bidhaa.category,
-        "quantity": bidhaa.quantity,
-        "alert_quantity": bidhaa.alert_quantity,
-        "code": bidhaa.code,
-        "brand": bidhaa.brand,
-        "price": bidhaa.price,
+    # Use instance parameter to populate form with existing data
+    form = EditBidhaaForm(instance=bidhaa)
+    return render(request, "hod_template/edit_bidhaa_template.html", {
+        "form": form, 
+        "id": bidhaa_id, 
+        "jina": bidhaa.jina
     })
 
-    return render(
-        request,
-        "hod_template/edit_bidhaa_template.html",
-        {"form": form, "id": bidhaa_id, "jina": bidhaa.jina},
-    )
 
-
-
-def edit_bidhaa_save(request):
+def edit_bidhaa_save(request, bidhaa_id):
     if request.method != "POST":
-        return HttpResponse("<h2>Method Not Allowed</h2>")
+        return HttpResponse("Method not allowed")
     else:
-        bidhaa_id = request.session.get("bidhaa_id")
-        if bidhaa_id is None:
-            return HttpResponseRedirect(reverse("manage_bidhaa"))
-
-        form = EditBidhaaForm(request.POST, request.FILES)
-        if form.is_valid():
-            jina = form.cleaned_data["jina"]
-            category = form.cleaned_data["category"]
-            quantity = form.cleaned_data["quantity"]
-            alert_quantity = form.cleaned_data["alert_quantity"]
-            code = form.cleaned_data["code"]
-            brand = form.cleaned_data["brand"]
-            price = form.cleaned_data["price"]
-
-            # Handle profile picture
-            if request.FILES.get("profile_pic", False):
-                profile_pic = request.FILES["profile_pic"]
-                fs = FileSystemStorage()
-                filename = fs.save(profile_pic.name, profile_pic)
-                profile_pic_url = fs.url(filename)
-            else:
-                profile_pic_url = None
-
-            try:
-                bidhaa = Bidhaas.objects.get(id=bidhaa_id)
-                bidhaa.jina = jina
-                bidhaa.category = category
-                bidhaa.quantity = quantity
-                bidhaa.alert_quantity = alert_quantity
-                bidhaa.code = code
-                bidhaa.brand = brand
-                bidhaa.price = price
-
-                if profile_pic_url is not None:
-                    bidhaa.profile_pic = profile_pic_url
-
-                bidhaa.save()
-                del request.session["bidhaa_id"]
-
-                messages.success(request, "Successfully Edited bidhaa")
-                return HttpResponseRedirect(
-                    reverse("edit_bidhaa", kwargs={"bidhaa_id": bidhaa_id})
-                )
-            except Exception as e:
-                messages.error(request, f"Failed to Edit bidhaa: {e}")
-                return HttpResponseRedirect(
-                    reverse("edit_bidhaa", kwargs={"bidhaa_id": bidhaa_id})
-                )
-        else:
+        # Example logic
+        try:
             bidhaa = Bidhaas.objects.get(id=bidhaa_id)
-            return render(
-                request,
-                "hod_template/edit_bidhaa_template.html",
-                {"form": form, "id": bidhaa_id, "jina": bidhaa.jina},
-            )
+            form = EditBidhaaForm(request.POST, request.FILES, instance=bidhaa)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Bidhaa updated successfully!")
+                return redirect('manage_bidhaa')
+            else:
+                messages.error(request, "Invalid form data.")
+                return redirect(f'/edit_bidhaa/{bidhaa_id}')
+        except Bidhaas.DoesNotExist:
+            messages.error(request, "Bidhaa not found.")
+            return redirect('manage_bidhaa')
 
 
 def edit_subject(request,subject_id):
