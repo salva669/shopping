@@ -16,8 +16,10 @@ Edit Bidhaa |  Jina la Bidhaa : {{ jina }} | #ID : {{ id }}
               <!-- /.card-header -->
               <!-- form start -->
          
-                {% url 'edit_bidhaa_save' id as action_path %}
-                {% include 'hod_template/form_template.html' with messages=messages form=form action_path=action_path button_text="Edit Bidhaa" %}
+              {% url 'edit_bidhaa_save' id as action_path %}
+              {% include 'hod_template/form_template.html' with messages=messages form=form action_path=action_path button_text="Edit Bidhaa" %}
+
+              
             <!-- /.card -->
 
 
