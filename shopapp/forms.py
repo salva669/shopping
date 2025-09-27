@@ -12,7 +12,7 @@ class AddBidhaaForm(forms.Form):
     alert_quantity=forms.IntegerField(label="Alert Quantity",widget=forms.NumberInput(attrs={"class":"form-control"}))
     code=forms.CharField(label="Code",max_length=50,widget=forms.TextInput(attrs={"class":"form-control"}))
     brand=forms.CharField(label="Brand",max_length=50,widget=forms.TextInput(attrs={"class":"form-control"}))
-    price=forms.DecimalField(label="Price",max_digits=10,decimal_places=2,widget=forms.NumberInput(attrs={"class":"form-control", "step": "0.01"}))
+    price=forms.DecimalField(label="Price (TZs)",max_digits=10,decimal_places=2,widget=forms.NumberInput(attrs={"class":"form-control", "step": "0.01"}))
     profile_pic=forms.FileField(label="Profile Pic",max_length=50,widget=forms.FileInput(attrs={"class":"form-control"}))
 
 class EditBidhaaForm(forms.ModelForm):
@@ -97,3 +97,26 @@ class BulkUpdateQuantityForm(forms.Form):
                     'min': '0'
                 })
             ) 
+
+class ImportBidhaaForm(forms.Form):
+    #form for importing data from CSV
+    csv_file = forms.FileField(
+        label = "CSV File",
+        widget = forms.FileInput(attrs={
+            'class': 'form-control-file',
+            'accept': '.csv'
+        }),
+        help_text="Upload a CSV file with columns: jina, category, quantity, alert_quantity, code, brand, price"
+    )
+
+    def clean_csv_file(self):
+        csv_file = self.cleaned_data.get('csv_file')
+        if csv_file:
+            if not csv_file.name.endswith('.csv'):
+                raise forms.ValidationError('Files must be a CSV file.')
+            
+            if csv_file.size > 5 * 1024 * 1024: #5MB Limit
+                raise forms.ValidationError('File size must be less than 5MB.')
+
+        return csv_file
+        
