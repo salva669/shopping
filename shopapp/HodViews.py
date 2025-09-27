@@ -417,6 +417,23 @@ def staff_feedback_message(request):
     feedbacks=FeedBackStaffs.objects.all()
     return render(request,"hod_template/staff_feedback_template.html",{"feedbacks":feedbacks})
 
+@login_required
+def view_bidhaa(request, bidhaa_id):
+    #view to display detailed bidhaa information
+    bidhaa = get_object_or_404(Bidhaas, id=bidhaa_id)
+
+    #check if stock is low
+    is_low_stock = bidhaa.quantity <= bidhaa.alert_quantity
+
+    context = {
+        'bidhaa': bidhaa,
+        'is_low_stock': is_low_stock,
+        'page_title': f'View {bidhaa.jina}'
+    }
+
+    return render(request, 'hod_template/view_bidhaa_template.html', context)
+    
+
 @csrf_exempt
 def staff_feedback_message_replied(request):
     feedback_id=request.POST.get("id")
