@@ -1,4 +1,5 @@
 from django.contrib import messages
+from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
 from django.db.models import Q, Count, Sum, Avg 
@@ -11,6 +12,8 @@ from django.contrib.auth.decorators import login_required
 from shopapp.models import CustomUser, Staffs, Courses, Subjects, Bidhaas, FeedBackStaffs, \
     LeaveReportStaff
 from .forms import AddBidhaaForm, EditBidhaaForm, SearchBidhaaForm, BulkUpdateQuantityForm
+import csv
+
 
 def admin_home(request):
     bidhaa_count=Bidhaas.objects.all().count()
@@ -717,3 +720,31 @@ def check_code_exists(request):
             })
     
     return JsonResponse({'exists': False, 'message': 'Invalid request'})
+
+@login_required
+def export_bidhaa_csv(request):
+    """View to export bidhaa data to CSV"""  
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="bidhaa_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Product Name', 'Category', 'Brand', 'Quantity', 
+        'Alert Quantity', 'Price', 'Code', 'Created Date', 'Low Stock Status'
+    ])
+    
+    for bidhaa in Bidhaas.objects.all():
+        writer.writerow([
+            bidhaa.id,
+            bidhaa.jina,
+            bidhaa.category,
+            bidhaa.brand,
+            bidhaa.quantity,
+            bidhaa.alert_quantity,
+            bidhaa.price,
+            bidhaa.code,
+            bidhaa.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'Yes' if bidhaa.quantity <= bidhaa.alert_quantity else 'No'
+        ])
+    
+    return response
