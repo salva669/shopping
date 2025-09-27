@@ -457,6 +457,59 @@ def delete_bidhaa(request, bidhaa_id):
 
     return render(request, 'hod_template/delete_bidhaa_template.html', context)
     
+@login_required
+def bulk_update_quantities(request):
+    #view to bulk update bidhaa quantities
+    if request.method == 'POST':
+        #get selected bidhaa IDs
+        selected_ids = request.POST.getlist('selected_bidhaas')
+
+        if not selected_ids:
+            messages.error(request, 'No bidhaa selected')
+            return redirect('manage_bidhaa')
+
+        bidhaas = Bidhaas.objects.filter(id__in=selected_ids)
+        form = BulkUpdateQuantityForm(request.POST, bidhaas=bidhaas)
+
+        if form.is_valid():
+            updated_count = 0
+
+            for bidhaa in bidhaas:
+                field_name = f'quantity_{bidhaa.id}'
+
+                if field_name in form.cleaned_data:
+                    new_quantity = form.cleaned_data[field_name]
+                    if new_quantity != bidhaa.quantity:
+                        bidhaa.quantity = new_quantity
+                        bidhaa.save()
+                        updated_count += 1
+
+            if updated_count > 0:
+                messages.success(request, f'Successfully updated {updated_count} bidhaa quantities')
+
+            else:
+                messages.info(request, 'No quantities were changed')
+
+            return redirect('manage_bidhaa')
+        
+    else:
+        #GET request - show form
+        selected_ids = request.GET.getlist('ids')
+        
+        if not selected_ids:
+            messages.error(request, 'No bidhaa selected')
+            return redirect('manage_bidhaa')
+    
+        bidhaas = Bidhaas.objects.filter(id__in=selected_ids)
+        form = BulkUpdateQuantityForm(bidhaas = bidhaas)
+
+    context = {
+        'form': form,
+        'bidhaas': bidhaas,
+        'page_title': 'Bulk Update Quantities'
+    }
+
+    return render(request, 'hod_template/bulk_update_quantities_template.html', context)
 
 @csrf_exempt
 def staff_feedback_message_replied(request):
