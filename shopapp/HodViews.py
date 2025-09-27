@@ -511,6 +511,27 @@ def bulk_update_quantities(request):
 
     return render(request, 'hod_template/bulk_update_quantities_template.html', context)
 
+@login_required
+def low_stock_alert(request):
+    #view to show bidhaa with low stock
+    low_stock_bidhaas = Bidhaas.objects.filter(
+        quantity__lte = models.F('alert_quantity')
+    ) .order_by('quantity')
+
+    paginator = Paginator(low_stock_bidhaas, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'bidhaas': page_obj,
+        'page_title': 'Low Stock Alert',
+        'is_paginated': page_obj.has_other_pages(),
+        'page_obj': page_obj,
+        'paginator': paginator,
+    }
+
+    return render(request, 'hod_template/low_stock_alert_template.html', context)
+
 @csrf_exempt
 def staff_feedback_message_replied(request):
     feedback_id=request.POST.get("id")
