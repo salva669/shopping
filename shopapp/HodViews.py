@@ -432,6 +432,30 @@ def view_bidhaa(request, bidhaa_id):
     }
 
     return render(request, 'hod_template/view_bidhaa_template.html', context)
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def delete_bidhaa(request, bidhaa_id):
+    #View to delete bidhaa
+    bidhaa = get_object_or_404(Bidhaas, id=bidhaa_id)
+
+    if request.method == 'POST':
+        bidhaa_name = bidhaa.jina
+        try:
+            bidhaa.delete()
+            messages.success(request, f'Successfully deleted "{bidhaa_name}"')
+        
+        except Exception as e:
+            messages.error(request, f'Error deleting bidhaa: {str(e)}')
+
+        return redirect('manage_bidhaa')
+
+    context = {
+        'bidhaa': bidhaa,
+        'page_title': f'Delete {bidhaa.jina}'
+    }
+
+    return render(request, 'hod_template/delete_bidhaa_template.html', context)
     
 
 @csrf_exempt
