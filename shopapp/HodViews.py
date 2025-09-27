@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count, Sum, Avg 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -531,6 +531,41 @@ def low_stock_alert(request):
     }
 
     return render(request, 'hod_template/low_stock_alert_template.html', context)
+
+@login_required
+def bidhaa_statistics(request):
+    #view to show bidhaa statistics
+    stats = {
+        'total_bidhaas': Bidhaas.objects.count(),
+        'total_value': Bidhaas.objects.aggregate(
+            total = Sum(models.F('quantity') * models.F('price'))
+        )['total'] or 0,
+        'low_stock_count': Bidhaas.objects.filter(
+            quantity__lte = models.F('alert_quantity')
+        ).count(),
+        'average_price': Bidhaas.objects.aggregate(avg_price = Avg('price'))['avg_price'] or 0,
+        'categories_count': Bidhaas.objects.values('category').distinct().count(),
+        'brands_count': Bidhaas.objects.values('brand').distinct().count(),
+    }
+
+    #top categories by count
+    top_categories = Bidhaas.objects.values('category').annotate(
+        count = Count('id')
+    ) .order_by('-count')[:5]
+
+    #top brands by count
+    top_brands = Bidhaas.objects.values('brand').annotate(
+        count = Count('id')
+    ) .order_by('-count')[:5]
+
+    context = {
+        'stats': stats,
+        'top_categories': top_categories,
+        'top_brands': top_brands,
+        'page_title': 'Bidhaa Statistics'
+    }
+
+    return render(request, 'hod_template/bidhaa_statistics_template.html', context)
 
 @csrf_exempt
 def staff_feedback_message_replied(request):
