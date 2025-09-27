@@ -1,0 +1,195 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}
+Low Stock Alert
+{% endblock page_title %}
+
+{% block main_content %}
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    
+    <!-- Page Header -->
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1>
+          <i class="fas fa-exclamation-triangle text-warning"></i> 
+          Low Stock Alert
+        </h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'manage_bidhaa' %}">Manage Bidhaa</a></li>
+          <li class="breadcrumb-item active">Low Stock Alert</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Alert Summary -->
+    <div class="row">
+      <div class="col-12">
+        <div class="alert alert-warning">
+          <h5><i class="icon fas fa-exclamation-triangle"></i> Stock Alert!</h5>
+          {% if bidhaas %}
+            You have {{ bidhaas|length }} product(s) with low stock levels that need immediate attention.
+          {% else %}
+            Great news! All products are well-stocked.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-list"></i> Products with Low Stock
+            </h3>
+            <div class="card-tools">
+              <a href="{% url 'manage_bidhaa' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-arrow-left"></i> Back to All Products
+              </a>
+            </div>
+          </div>
+          
+          <div class="card-body table-responsive p-0">
+            {% if bidhaas %}
+              <table class="table table-hover text-nowrap">
+                <thead class="bg-warning">
+                  <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Current Stock</th>
+                    <th>Alert Level</th>
+                    <th>Shortage</th>
+                    <th>Value at Risk</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for bidhaa in bidhaas %}
+                    <tr class="table-warning">
+                      <td>
+                        <div class="d-flex align-items-center">
+                          {% if bidhaa.profile_pic %}
+                            <img src="{{ bidhaa.profile_pic.url }}" 
+                                 alt="{{ bidhaa.jina }}" 
+                                 class="img-circle mr-2"
+                                 style="width:40px; height:40px; object-fit:cover;">
+                          {% endif %}
+                          <div>
+                            <strong>{{ bidhaa.jina }}</strong>
+                            <br><small class="text-muted">{{ bidhaa.brand }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge badge-info">{{ bidhaa.category }}</span>
+                      </td>
+                      <td>
+                        <span class="badge badge-danger badge-lg">
+                          {{ bidhaa.quantity }} units
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge badge-warning">
+                          {{ bidhaa.alert_quantity }} units
+                        </span>
+                      </td>
+                      <td>
+                        {% with shortage=bidhaa.alert_quantity|sub:bidhaa.quantity %}
+                          {% if shortage > 0 %}
+                            <span class="badge badge-danger">
+                              -{{ shortage }} units
+                            </span>
+                          {% else %}
+                            <span class="badge badge-warning">
+                              At alert level
+                            </span>
+                          {% endif %}
+                        {% endwith %}
+                      </td>
+                      <td>
+                        <span class="text-danger font-weight-bold">
+                          {{ bidhaa.quantity|mul:bidhaa.price|floatformat:2 }} TZS
+                        </span>
+                      </td>
+                      <td>
+                        <div class="btn-group" role="group">
+                          <a href="{% url 'view_bidhaa' bidhaa_id=bidhaa.id %}" 
+                             class="btn btn-info btn-sm" title="View Details">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                          <a href="{% url 'edit_bidhaa' bidhaa_id=bidhaa.id %}" 
+                             class="btn btn-success btn-sm" title="Update Stock">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              
+              <!-- Pagination -->
+              {% if is_paginated %}
+                <div class="card-footer">
+                  <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                      <div class="dataTables_info">
+                        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} 
+                        of {{ paginator.count }} low stock items
+                      </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                      <div class="dataTables_paginate paging_simple_numbers">
+                        <ul class="pagination">
+                          {% if page_obj.has_previous %}
+                            <li class="paginate_button page-item previous">
+                              <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+                            </li>
+                          {% endif %}
+                          
+                          {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                              <li class="paginate_button page-item active">
+                                <a href="#" class="page-link">{{ num }}</a>
+                              </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                              <li class="paginate_button page-item">
+                                <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+                              </li>
+                            {% endif %}
+                          {% endfor %}
+                          
+                          {% if page_obj.has_next %}
+                            <li class="paginate_button page-item next">
+                              <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+                            </li>
+                          {% endif %}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+              
+            {% else %}
+              <div class="text-center p-5">
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h4 class="text-success">All Products Well Stocked!</h4>
+                <p class="text-muted">
+                  No products are currently below their alert quantity levels.
+                </p>
+                <a href="{% url 'manage_bidhaa' %}" class="btn btn-primary">
+                  <i class="fas fa-box"></i> View All Products
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock main_content %}
