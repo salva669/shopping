@@ -119,4 +119,55 @@ class ImportBidhaaForm(forms.Form):
                 raise forms.ValidationError('File size must be less than 5MB.')
 
         return csv_file
-        
+
+class StockAdjustmentForm(forms.Form):
+    #form for adjusting stock quantities with reasons
+    adjustment_types = [
+        ('add', 'Add Stock'),
+        ('remove', 'Remove Stock'),
+        ('set', 'Set Quantity'),
+    ]
+
+    reason_choices = [
+        ('purchase', 'New Purchase'),
+        ('sale', 'Sale'),
+        ('damage', 'Damaged'),
+        ('expired', 'Expired'),
+        ('theft', 'Theft'),
+        ('count', 'Stock Count Adjustment'),
+        ('return', 'Customer Return'),
+        ('other', 'Other'),
+    ]
+
+    adjustment_type = forms.ChoiceField(
+        choices = adjustment_types,
+        widget = forms.Select(attrs={
+            'class': 'form-control'
+        })
+
+    )
+    quantity = forms.IntegerField(
+        validators = [MinValueValidator(1)],
+        widget = forms.NumberInput(attrs = {
+            'class': 'form-control',
+            'min': '1'
+        })
+    )
+
+    reason = forms.ChoiceField(
+        choices = reason_choices,
+        widget = forms.Select(attrs = {
+            'class': 'form-control'
+        })
+    )
+
+    notes = forms.CharField(
+        required = False,
+        widget = forms.Textarea(attrs = {
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Optional notes about this adjustment'
+        })
+    )
+
+    
