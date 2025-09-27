@@ -664,3 +664,36 @@ def check_username_exist(request):
         return HttpResponse(True)
     else:
         return HttpResponse(False)
+
+#AJAX Views for dynamic functionality
+
+@login_required
+def get_bidhaa_details(request, bidhaa_id):
+    #ajax view to get bidhaa details
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            bidhaa = Bidhaas.objects.get(id=bidhaa_id)
+            data = {
+                'success': True,
+                'data': {
+                    'id': bidhaa.id,
+                    'jina': bidhaa.jina,
+                    'category': bidhaa.category,
+                    'brand': bidhaa.brand,
+                    'quantity': bidhaa.quantity,
+                    'alert_quantity': bidhaa.alert_quantity,
+                    'price': float(bidhaa.price),
+                    'code': bidhaa.code,
+                    'profile_pic': bidhaa.profile_pic.url if bidhaa.profile_pic else None,
+                    'created_at': bidhaa.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'updated_at': bidhaa.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'is_low_stock': bidhaa.quantity <= bidhaa.alert_quantity
+                }
+            }
+
+        except Bidhaas.DoesNotExist:
+            data = {'success': False, 'message': 'Bidhaa not found'}
+
+        return JsonResponse(data)
+
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
