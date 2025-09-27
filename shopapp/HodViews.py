@@ -697,3 +697,23 @@ def get_bidhaa_details(request, bidhaa_id):
         return JsonResponse(data)
 
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+@login_required
+def check_code_exists(request):
+    #AJAX view to check if product code exists
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        code = request.GET.get('code')
+        bidhaa_id = request.GET.get('bidhaa_id')  # For edit form
+        
+        if code:
+            exists = Bidhaas.objects.filter(code=code)
+            if bidhaa_id:
+                exists = exists.exclude(id=bidhaa_id)
+            
+            return JsonResponse({
+                'exists': exists.exists(),
+                'message': 'Product code already exists' if exists.exists() else 'Code is available'
+            })
+    
+    return JsonResponse({'exists': False, 'message': 'Invalid request'})
