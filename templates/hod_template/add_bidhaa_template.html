@@ -1,30 +1,70 @@
 {% extends 'hod_template/base_template.html' %}
 {% block page_title %}
-Ongeza Bidhaa
+Add New Bidhaa
 {% endblock page_title %}
+
 {% block main_content %}
-    <!-- Main content -->
-    <section class="content">
-      <div class="container-fluid">
-          <div class="row">
-              <div class="col-md-12">
-            <!-- general form elements -->
-            <div class="card card-primary">
-              <div class="card-header">
-                <h3 class="card-title">Ongeza Bidhaa</h3>
-              </div>
-              <!-- /.card-header -->
-              <!-- form start -->
-                {% url 'add_bidhaa_save' as action_path %}
-                {% include 'hod_template/form_template.html' with messages=messages form=form action_path=action_path button_text="Add Bidhaa" %}
-            </div>
-            <!-- /.card -->
-
-
-
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <!-- general form elements -->
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title">Add New Bidhaa</h3>
           </div>
+          <!-- /.card-header -->
+          
+          <!-- Breadcrumb -->
+          <div class="card-body pb-0">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'manage_bidhaa' %}">Manage Bidhaa</a></li>
+                <li class="breadcrumb-item active">Add New</li>
+              </ol>
+            </nav>
           </div>
+          
+          <!-- Form -->
+          {% url 'add_bidhaa' as action_path %}
+          {% include 'hod_template/form_template.html' with messages=messages form=form action_path=action_path button_text="Add Bidhaa" %}
+        </div>
+        <!-- /.card -->
       </div>
-    </section>
-    <!-- /.content -->
+    </div>
+  </div>
+</section>
+<!-- /.content -->
+
+<!-- JavaScript for form enhancements -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-generate code based on product name
+    const jinaField = document.querySelector('input[name="jina"]');
+    const codeField = document.querySelector('input[name="code"]');
+    
+    if (jinaField && codeField) {
+        jinaField.addEventListener('input', function() {
+            if (!codeField.value) {
+                // Generate simple code from product name
+                const code = this.value.toUpperCase().replace(/\s+/g, '').substring(0, 8);
+                codeField.value = code;
+            }
+        });
+    }
+    
+    // Price validation
+    const priceField = document.querySelector('input[name="price"]');
+    if (priceField) {
+        priceField.addEventListener('change', function() {
+            if (parseFloat(this.value) <= 0) {
+                this.setCustomValidity('Price must be greater than zero');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
 {% endblock main_content %}
