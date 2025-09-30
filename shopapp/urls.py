@@ -4,27 +4,50 @@ from shop import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    # Authentication URLs
     path('', views.ShowLoginPage, name='show_login'),
     path('get_user_details', views.GetUserDetails),
-    path('logout_user', views.logout_user,name="logout"),
-    path('doLogin',views.doLogin,name="do_login"),
-    path('admin_home',HodViews.admin_home,name="admin_home"),
-    path('add_staff',HodViews.add_staff,name="add_staff"),
-    path('add_staff_save',HodViews.add_staff_save,name="add_staff_save"),
-    path('add_course',HodViews.add_course,name="add_course"),
-    path('add_course_save',HodViews.add_course_save,name="add_course_save"),
-    path('add_bidhaa', HodViews.add_bidhaa,name="add_bidhaa"),
-    path('add_bidhaa_save', HodViews.add_bidhaa_save,name="add_bidhaa_save"),
-    path('add_subject', HodViews.add_subject,name="add_subject"),
-    path('add_subject_save', HodViews.add_subject_save,name="add_subject_save"),
-    path('manage_staff', HodViews.manage_staff,name="manage_staff"),
-    path('manage_bidhaa', HodViews.manage_bidhaa,name="manage_bidhaa"),
-    path('manage_course', HodViews.manage_course,name="manage_course"),
-    path('manage_subject', HodViews.manage_subject,name="manage_subject"),
-    path('edit_staff/<str:staff_id>', HodViews.edit_staff,name="edit_staff"),
-    path('edit_staff_save', HodViews.edit_staff_save,name="edit_staff_save"),
+    path('logout_user', views.logout_user, name="logout"),
+    path('doLogin', views.doLogin, name="do_login"),
+    
+    # Admin Home
+    path('admin_home', HodViews.admin_home, name="admin_home"),
+    
+    # Staff Management
+    path('add_staff', HodViews.add_staff, name="add_staff"),
+    path('add_staff_save', HodViews.add_staff_save, name="add_staff_save"),
+    path('manage_staff', HodViews.manage_staff, name="manage_staff"),
+    path('edit_staff/<str:staff_id>', HodViews.edit_staff, name="edit_staff"),
+    path('edit_staff_save', HodViews.edit_staff_save, name="edit_staff_save"),
+    
+    # Course Management
+    path('add_course', HodViews.add_course, name="add_course"),
+    path('add_course_save', HodViews.add_course_save, name="add_course_save"),
+    path('manage_course', HodViews.manage_course, name="manage_course"),
+    
+    # Subject Management
+    path('add_subject', HodViews.add_subject, name="add_subject"),
+    path('add_subject_save', HodViews.add_subject_save, name="add_subject_save"),
+    path('manage_subject', HodViews.manage_subject, name="manage_subject"),
+    
+    # Bidhaa Management - CORRECTED URLs
+    path('add_bidhaa/', HodViews.add_bidhaa, name="add_bidhaa"),
+    path('add_bidhaa_save/', HodViews.add_bidhaa_save, name="add_bidhaa_save"),
+    path('manage_bidhaa/', HodViews.manage_bidhaa, name="manage_bidhaa"),
     path('edit_bidhaa/<int:bidhaa_id>/', HodViews.edit_bidhaa, name="edit_bidhaa"),
-    path('edit_bidhaa_save/<int:bidhaa_id>/', HodViews.edit_bidhaa_save, name="edit_bidhaa_save"),
+    path('edit_bidhaa_save/', HodViews.edit_bidhaa_save, name="edit_bidhaa_save"),  # CHANGED - No ID needed
+    path('view_bidhaa/<int:bidhaa_id>/', HodViews.view_bidhaa, name="view_bidhaa"),
+    path('delete_bidhaa/<int:bidhaa_id>/', HodViews.delete_bidhaa, name="delete_bidhaa"),
+    
+    # Additional Bidhaa URLs
+    path('low_stock_alert/', HodViews.low_stock_alert, name='low_stock_alert'),
+    path('bidhaa_statistics/', HodViews.bidhaa_statistics, name='bidhaa_statistics'),
+    path('bulk_update_quantities/', HodViews.bulk_update_quantities, name='bulk_update_quantities'),
+    path('export_bidhaa_csv/', HodViews.export_bidhaa_csv, name='export_bidhaa_csv'),
+    
+    # AJAX endpoints (optional)
+    path('ajax/get_bidhaa_details/<int:bidhaa_id>/', HodViews.get_bidhaa_details, name='get_bidhaa_details'),
+    path('ajax/check_code_exists/', HodViews.check_code_exists, name='check_code_exists'),
 
     path('edit_subject/<str:subject_id>', HodViews.edit_subject,name="edit_subject"),
     path('edit_subject_save', HodViews.edit_subject_save,name="edit_subject_save"),
