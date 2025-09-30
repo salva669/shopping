@@ -138,6 +138,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTHENTICATION_BACKENDS=['shopapp.EmailBackEnd.EmailBackEnd']
 AUTH_USER_MODEL="shopapp.CustomUser"
 
+# For pagination
+PAGINATE_BY = 10
+
 # EMAIL_HOST="smtp.gmail.com"
 # EMAIl_PORT=587
 # EMAIL_HOST_USER="GMAIL_EMAIL"
