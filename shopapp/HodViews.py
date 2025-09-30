@@ -2,7 +2,7 @@ from django.contrib import messages
 from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
-from django.db.models import Q, Count, Sum, Avg 
+from django.db.models import Q, F, Count, Sum, Avg 
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -130,7 +130,7 @@ def add_bidhaa(request):
     #return render(request,"hod_template/add_bidhaa_template.html",{"form":form})
     return render(request,"hod_template/add_bidhaa_template.html", context)
 
-def add_bidhaa_save(request):
+"""def add_bidhaa_save(request):
     if request.method != "POST":
         return HttpResponse("Method Not Allowed")
     else:
@@ -173,6 +173,7 @@ def add_bidhaa_save(request):
                 "hod_template/add_bidhaa_template.html",
                 {"form": form}
             )
+"""
 
 
 def add_subject(request):
@@ -209,54 +210,56 @@ def manage_staff(request):
 
 @login_required
 def manage_bidhaa(request):
-    #view to display and search all bidhaa
+    """View to display and search all bidhaa"""
+    
+    # Get search parameters
     search_query = request.GET.get('search', '')
     category_filter = request.GET.get('category', '')
     min_price = request.GET.get('min_price', '')
     max_price = request.GET.get('max_price', '')
     low_stock_only = request.GET.get('low_stock_only', False)
 
-    #Base queryset
+    # Base queryset
     bidhaas = Bidhaas.objects.all().order_by('-created_at')
 
-    #Apply search filters
+    # Apply search filters - FIXED: Remove underscores, use double underscores
     if search_query:
         bidhaas = bidhaas.filter(
-            Q(jina_icontains=search_query) |
-            Q(category_icontains=search_query) |
-            Q(brand_icontains=search_query) |
-            Q(code_icontains=search_query) 
+            Q(jina__icontains=search_query) |      # Fixed: jina__icontains not jina_icontains
+            Q(category__icontains=search_query) |  # Fixed: category__icontains
+            Q(brand__icontains=search_query) |     # Fixed: brand__icontains
+            Q(code__icontains=search_query)        # Fixed: code__icontains
         )
     
     if category_filter:
         bidhaas = bidhaas.filter(
-            category_icontains=category_filter
+            category__icontains=category_filter    # Fixed: category__icontains
         )
 
     if min_price:
         try:
             bidhaas = bidhaas.filter(
-                price_gte=float(min_price)
-                )
+                price__gte=float(min_price)        # Fixed: price__gte not price_gte
+            )
         except ValueError:
             pass
 
     if max_price:
         try:
             bidhaas = bidhaas.filter(
-                price_lte=float(max_price)
-                )
+                price__lte=float(max_price)        # Fixed: price__lte not price_lte
+            )
         except ValueError:
             pass
 
     if low_stock_only:
-        #show items where quantity <= alert quantity
+        # Show items where quantity <= alert_quantity
         bidhaas = bidhaas.filter(
-            quantity_lter=models.F('alert_quantity')
-            )
+            quantity__lte=F('alert_quantity')      # Fixed: quantity__lte not quantity_lter
+        )
 
-    #Pagination
-    paginator = Paginator(bidhaas, 10) # show 10 bidhaa per page
+    # Pagination
+    paginator = Paginator(bidhaas, 10)  # Show 10 bidhaa per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -268,8 +271,7 @@ def manage_bidhaa(request):
         'paginator': paginator,
     }
 
-    #return render(request,"hod_template/manage_bidhaa_template.html",{"bidhaas":bidhaas})
-    return render(request,"hod_template/manage_bidhaa_template.html", context)
+    return render(request, "hod_template/manage_bidhaa_template.html", context)
 
 def manage_course(request):
     courses=Courses.objects.all()

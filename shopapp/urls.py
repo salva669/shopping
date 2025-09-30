@@ -32,7 +32,7 @@ urlpatterns = [
     
     # Bidhaa Management - CORRECTED URLs
     path('add_bidhaa/', HodViews.add_bidhaa, name="add_bidhaa"),
-    path('add_bidhaa_save/', HodViews.add_bidhaa_save, name="add_bidhaa_save"),
+    #path('add_bidhaa_save/', HodViews.add_bidhaa_save, name="add_bidhaa_save"),
     path('manage_bidhaa/', HodViews.manage_bidhaa, name="manage_bidhaa"),
     path('edit_bidhaa/<int:bidhaa_id>/', HodViews.edit_bidhaa, name="edit_bidhaa"),
     path('edit_bidhaa_save/', HodViews.edit_bidhaa_save, name="edit_bidhaa_save"),  # CHANGED - No ID needed
