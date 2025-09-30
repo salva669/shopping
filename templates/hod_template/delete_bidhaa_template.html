@@ -1,0 +1,174 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}
+Delete {{ bidhaa.jina }}
+{% endblock page_title %}
+
+{% block main_content %}
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    
+    <!-- Breadcrumb -->
+    <div class="row mb-2">
+      <div class="col-12">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'manage_bidhaa' %}">Manage Bidhaa</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'view_bidhaa' bidhaa_id=bidhaa.id %}">{{ bidhaa.jina }}</a></li>
+            <li class="breadcrumb-item active">Delete</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card card-danger">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-exclamation-triangle"></i> Confirm Deletion
+            </h3>
+          </div>
+          
+          <div class="card-body">
+            <!-- Warning Icon -->
+            <div class="text-center mb-4">
+              <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+            </div>
+            
+            <!-- Confirmation Message -->
+            <h4 class="text-center text-danger mb-4">
+              Are you sure you want to delete this bidhaa?
+            </h4>
+            
+            <!-- Product Details -->
+            <div class="row">
+              <div class="col-md-4 text-center">
+                {% if bidhaa.profile_pic %}
+                  <img src="{{ bidhaa.profile_pic.url }}" 
+                       alt="{{ bidhaa.jina }}" 
+                       style="width:120px; height:120px; object-fit:cover; border-radius:10px;"
+                       class="img-thumbnail">
+                {% else %}
+                  <div class="bg-light d-inline-flex align-items-center justify-content-center" 
+                       style="width:120px; height:120px; border-radius:10px;">
+                    <i class="fas fa-image fa-2x text-muted"></i>
+                  </div>
+                {% endif %}
+              </div>
+              
+              <div class="col-md-8">
+                <div class="alert alert-warning">
+                  <h5 class="alert-heading">
+                    <i class="fas fa-box mr-2"></i>{{ bidhaa.jina }}
+                  </h5>
+                  <hr>
+                  <div class="row">
+                    <div class="col-sm-6">
+                      <p class="mb-1"><strong>Category:</strong> {{ bidhaa.category }}</p>
+                      <p class="mb-1"><strong>Brand:</strong> {{ bidhaa.brand }}</p>
+                      <p class="mb-1"><strong>Code:</strong> <code>{{ bidhaa.code }}</code></p>
+                    </div>
+                    <div class="col-sm-6">
+                      <p class="mb-1"><strong>Quantity:</strong> 
+                        <span class="badge badge-info">{{ bidhaa.quantity }} units</span>
+                      </p>
+                      <p class="mb-1"><strong>Price:</strong> 
+                        <span class="text-success font-weight-bold">{{ bidhaa.price }} TZS</span>
+                      </p>
+                      <p class="mb-0"><strong>Total Value:</strong> 
+                        <span class="text-danger font-weight-bold">{{ bidhaa.quantity|mul:bidhaa.price|floatformat:2 }} TZS</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Warning Messages -->
+            <div class="alert alert-danger mt-3">
+              <h6><i class="fas fa-exclamation-circle"></i> Warning:</h6>
+              <ul class="mb-0 pl-3">
+                <li>This action cannot be undone</li>
+                <li>All product data will be permanently removed</li>
+                <li>Any associated records may also be affected</li>
+                {% if bidhaa.quantity > 0 %}
+                <li class="text-danger"><strong>This product still has {{ bidhaa.quantity }} units in stock</strong></li>
+                {% endif %}
+              </ul>
+            </div>
+            
+            <!-- Confirmation Input -->
+            <div class="form-group mt-4">
+              <label for="confirmText" class="font-weight-bold">
+                Type "DELETE" to confirm:
+              </label>
+              <input type="text" 
+                     id="confirmText" 
+                     class="form-control" 
+                     placeholder="Type DELETE here"
+                     style="border: 2px solid #dc3545;">
+              <small class="text-muted">This helps prevent accidental deletions</small>
+            </div>
+          </div>
+          
+          <div class="card-footer text-center">
+            <form method="POST" id="deleteForm">
+              {% csrf_token %}
+              <button type="submit" 
+                      id="deleteButton"
+                      class="btn btn-danger btn-lg mr-3" 
+                      disabled>
+                <i class="fas fa-trash"></i> Yes, Delete Permanently
+              </button>
+              <a href="{% url 'view_bidhaa' bidhaa_id=bidhaa.id %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> Cancel & Go Back
+              </a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JavaScript for confirmation -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmInput = document.getElementById('confirmText');
+    const deleteButton = document.getElementById('deleteButton');
+    const deleteForm = document.getElementById('deleteForm');
+    
+    // Enable/disable delete button based on confirmation text
+    confirmInput.addEventListener('input', function() {
+        if (this.value.toUpperCase() === 'DELETE') {
+            deleteButton.disabled = false;
+            deleteButton.classList.remove('btn-danger');
+            deleteButton.classList.add('btn-outline-danger');
+            this.style.borderColor = '#28a745';
+        } else {
+            deleteButton.disabled = true;
+            deleteButton.classList.remove('btn-outline-danger');
+            deleteButton.classList.add('btn-danger');
+            this.style.borderColor = '#dc3545';
+        }
+    });
+    
+    // Double confirmation on form submit
+    deleteForm.addEventListener('submit', function(e) {
+        if (!confirm('Are you absolutely sure? This action cannot be undone!')) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Show loading state
+        deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+        deleteButton.disabled = true;
+    });
+    
+    // Focus on confirmation input
+    confirmInput.focus();
+});
+</script>
+<!-- /.content -->
+{% endblock main_content %}
