@@ -337,34 +337,16 @@ def edit_bidhaa(request, bidhaa_id):
     context = {
         'form': form,
         'bidhaa': bidhaa,
+        'id': bidhaa_id,  
+        'jina': bidhaa.jina,  
         'page_title': f'Edit {bidhaa.jina}',
         'button_text': 'Update Bidhaa',
-        'action_url': reverse('edit_bidhaa', kwargs={'bidhaa_id': bidhaa_id})
     }  
 
     return render(request, "hod_template/edit_bidhaa_template.html", context)
 
 
-def edit_bidhaa_save(request, bidhaa_id):
-    bidhaa = get_object_or_404(Bidhaas, id=bidhaa_id)
 
-    if request.method != "POST":
-        messages.error(request, "Invalid request method")
-        return redirect("edit_bidhaa", bidhaa_id=bidhaa.id)
-
-    form = EditBidhaaForm(request.POST, request.FILES, instance=bidhaa)
-
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Bidhaa updated successfully")
-        return redirect("edit_bidhaa", bidhaa_id=bidhaa.id)
-    else:
-        messages.error(request, "Failed to update bidhaa. Please check the form.")
-        return render(request, "hod_template/edit_bidhaa_template.html", {
-            "form": form,
-            "id": bidhaa.id,
-            "jina": bidhaa.jina,
-        })
 
 
 
