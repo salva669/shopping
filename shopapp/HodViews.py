@@ -345,11 +345,6 @@ def edit_bidhaa(request, bidhaa_id):
 
     return render(request, "hod_template/edit_bidhaa_template.html", context)
 
-
-
-
-
-
 def edit_subject(request,subject_id):
     subject=Subjects.objects.get(id=subject_id)
     courses=Courses.objects.all()
@@ -406,18 +401,22 @@ def staff_feedback_message(request):
 
 @login_required
 def view_bidhaa(request, bidhaa_id):
-    #view to display detailed bidhaa information
+    """View to display detailed bidhaa information (READ-ONLY)"""
     bidhaa = get_object_or_404(Bidhaas, id=bidhaa_id)
-
-    #check if stock is low
+    
+    # Check if stock is low
     is_low_stock = bidhaa.quantity <= bidhaa.alert_quantity
-
+    
+    # Calculate total value
+    total_value = bidhaa.quantity * bidhaa.price
+    
     context = {
         'bidhaa': bidhaa,
         'is_low_stock': is_low_stock,
+        'total_value': total_value,
         'page_title': f'View {bidhaa.jina}'
     }
-
+    
     return render(request, 'hod_template/view_bidhaa_template.html', context)
 
 @login_required

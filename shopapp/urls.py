@@ -35,7 +35,7 @@ urlpatterns = [
     #path('add_bidhaa_save/', HodViews.add_bidhaa_save, name="add_bidhaa_save"),
     path('manage_bidhaa/', HodViews.manage_bidhaa, name="manage_bidhaa"),
     path('edit_bidhaa/<int:bidhaa_id>/', HodViews.edit_bidhaa, name="edit_bidhaa"),
-    path('edit_bidhaa_save/', HodViews.edit_bidhaa_save, name="edit_bidhaa_save"),  # CHANGED - No ID needed
+    #path('edit_bidhaa_save/', HodViews.edit_bidhaa_save, name="edit_bidhaa_save"),  # CHANGED - No ID needed
     path('view_bidhaa/<int:bidhaa_id>/', HodViews.view_bidhaa, name="view_bidhaa"),
     path('delete_bidhaa/<int:bidhaa_id>/', HodViews.delete_bidhaa, name="delete_bidhaa"),
     

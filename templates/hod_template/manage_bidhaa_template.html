@@ -7,63 +7,236 @@ Manage Bidhaa
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-          <div class="row">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Taarifa za Bidhaa</h3>
-                <div class="card-tools">
-                  <div class="input-group input-group-sm" style="width: 150px;">
-                    <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
+          
+          <!-- Add New Button -->
+          <div class="row mb-3">
+            <div class="col-12">
+              <a href="{% url 'add_bidhaa' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Bidhaa
+              </a>
+            </div>
+          </div>
 
-                    <div class="input-group-append">
-                      <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                    </div>
+          <!-- Messages -->
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert">
+                  <span>&times;</span>
+                </button>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Taarifa za Bidhaa</h3>
+                  <div class="card-tools">
+                    <!-- Search Form -->
+                    <form method="GET" class="d-inline">
+                      <div class="input-group input-group-sm" style="width: 250px;">
+                        <input type="text" name="search" class="form-control float-right" 
+                               placeholder="Search..." value="{{ request.GET.search }}">
+                        <div class="input-group-append">
+                          <button type="submit" class="btn btn-default">
+                            <i class="fas fa-search"></i>
+                          </button>
+                          {% if request.GET.search %}
+                            <a href="{% url 'manage_bidhaa' %}" class="btn btn-secondary">
+                              <i class="fas fa-times"></i>
+                            </a>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </form>
                   </div>
                 </div>
+                <!-- /.card-header -->
+                <div class="card-body table-responsive p-0">
+                  {% if bidhaas %}
+                    <table class="table table-hover text-nowrap">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Image</th>
+                          <th>Jina la Bidhaa</th>
+                          <th>Category</th>
+                          <th>Brand</th>
+                          <th>Quantity</th>
+                          <th>Alert Qty</th>
+                          <th>Price (TZS)</th>
+                          <th>Code</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for bidhaa in bidhaas %}
+                        <tr {% if bidhaa.quantity <= bidhaa.alert_quantity %}class="table-warning"{% endif %}>
+                          <td>{{ bidhaa.id }}</td>
+                          <td>
+                            {% if bidhaa.profile_pic %}
+                              <img src="{{ bidhaa.profile_pic.url }}" 
+                                   alt="{{ bidhaa.jina }}"
+                                   style="width:50px; height:50px; object-fit:cover; border-radius:5px;"
+                                   class="img-thumbnail">
+                            {% else %}
+                              <div class="bg-light d-inline-flex align-items-center justify-content-center" 
+                                   style="width:50px; height:50px; border-radius:5px;">
+                                <i class="fas fa-image text-muted"></i>
+                              </div>
+                            {% endif %}
+                          </td>
+                          <td>
+                            <strong>{{ bidhaa.jina }}</strong>
+                            {% if bidhaa.quantity <= bidhaa.alert_quantity %}
+                              <br><small class="text-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Low Stock
+                              </small>
+                            {% endif %}
+                          </td>
+                          <td><span class="badge badge-info">{{ bidhaa.category }}</span></td>
+                          <td>{{ bidhaa.brand }}</td>
+                          <td>
+                            <span class="badge {% if bidhaa.quantity <= bidhaa.alert_quantity %}badge-danger{% else %}badge-success{% endif %}">
+                              {{ bidhaa.quantity }}
+                            </span>
+                          </td>
+                          <td>{{ bidhaa.alert_quantity }}</td>
+                          <td><strong>{{ bidhaa.price|floatformat:2 }}</strong></td>
+                          <td><code>{{ bidhaa.code }}</code></td>
+                          <td>
+                            <div class="btn-group" role="group">
+                              <!-- VIEW Button - Shows detailed display -->
+                              <a href="{% url 'view_bidhaa' bidhaa_id=bidhaa.id %}" 
+                                 class="btn btn-info btn-sm" 
+                                 title="View Details">
+                                <i class="fas fa-eye"></i>
+                              </a>
+                              
+                              <!-- EDIT Button - Shows edit form -->
+                              <a href="{% url 'edit_bidhaa' bidhaa_id=bidhaa.id %}" 
+                                 class="btn btn-success btn-sm" 
+                                 title="Edit">
+                                <i class="fas fa-edit"></i>
+                              </a>
+                              
+                              <!-- DELETE Button -->
+                              <button type="button" 
+                                      class="btn btn-danger btn-sm" 
+                                      title="Delete"
+                                      data-toggle="modal" 
+                                      data-target="#deleteModal{{ bidhaa.id }}">
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+
+                        <!-- Delete Confirmation Modal for each bidhaa -->
+                        <div class="modal fade" id="deleteModal{{ bidhaa.id }}" tabindex="-1">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header bg-danger">
+                                <h5 class="modal-title text-white">
+                                  <i class="fas fa-exclamation-triangle"></i> Confirm Delete
+                                </h5>
+                                <button type="button" class="close text-white" data-dismiss="modal">
+                                  <span>&times;</span>
+                                </button>
+                              </div>
+                              <div class="modal-body">
+                                <p>Are you sure you want to delete <strong>{{ bidhaa.jina }}</strong>?</p>
+                                <p class="text-muted">This action cannot be undone.</p>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                  Cancel
+                                </button>
+                                <a href="{% url 'delete_bidhaa' bidhaa_id=bidhaa.id %}" 
+                                   class="btn btn-danger">
+                                  Delete
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                      {% endfor %}
+                      </tbody>
+                    </table>
+                    
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                      <div class="card-footer">
+                        <div class="row">
+                          <div class="col-sm-12 col-md-5">
+                            <div class="dataTables_info">
+                              Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} 
+                              of {{ paginator.count }} entries
+                            </div>
+                          </div>
+                          <div class="col-sm-12 col-md-7">
+                            <div class="dataTables_paginate paging_simple_numbers">
+                              <ul class="pagination">
+                                {% if page_obj.has_previous %}
+                                  <li class="paginate_button page-item previous">
+                                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                                       class="page-link">Previous</a>
+                                  </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                  {% if page_obj.number == num %}
+                                    <li class="paginate_button page-item active">
+                                      <a href="#" class="page-link">{{ num }}</a>
+                                    </li>
+                                  {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="paginate_button page-item">
+                                      <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                                         class="page-link">{{ num }}</a>
+                                    </li>
+                                  {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                  <li class="paginate_button page-item next">
+                                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                                       class="page-link">Next</a>
+                                  </li>
+                                {% endif %}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                    
+                  {% else %}
+                    <div class="text-center p-5">
+                      <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                      <h4>No Bidhaa Found</h4>
+                      <p class="text-muted">
+                        {% if request.GET.search %}
+                          No bidhaa found matching "{{ request.GET.search }}"
+                        {% else %}
+                          No bidhaa available. Add some products to get started.
+                        {% endif %}
+                      </p>
+                      <a href="{% url 'add_bidhaa' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add First Bidhaa
+                      </a>
+                    </div>
+                  {% endif %}
+                </div>
+                <!-- /.card-body -->
               </div>
-              <!-- /.card-header -->
-              <div class="card-body table-responsive p-0">
-                <table class="table table-hover text-nowrap">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Jina la Bidhaa</th>
-                      <th>Category</th>
-                      <th>Brand</th>
-                      <th>Quantity</th>
-                      <th>Alert Quantity</th>
-                      <th>Price</th>
-                      <th>Code</th>
-                      <th>Profile Pic</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  {% for bidhaa in bidhaas %}
-                    <tr>
-                      <td>{{ bidhaa.id }}</td>
-                      <td>{{ bidhaa.jina }}</td>
-                      <td>{{ bidhaa.category }}</td>
-                      <td>{{ bidhaa.brand }}</td>
-                      <td>{{ bidhaa.quantity }}</td>
-                      <td>{{ bidhaa.alert_quantity }}</td>
-                      <td>{{ bidhaa.price }}</td>
-                      <td>{{ bidhaa.code }}</td>
-                      <td><img src="{{ bidhaa.profile_pic }}" style="width:100px"/></td>
-                      <td><a href="{% url 'edit_bidhaa' bidhaa_id=bidhaa.id %}" class="btn btn-success">Edit</a></td>
-                    </tr>
-                  {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-              <!-- /.card-body -->
+              <!-- /.card -->
             </div>
-            <!-- /.card -->
           </div>
-        </div>
       </div>
     </section>
     <!-- /.content -->
 {% endblock main_content %}
-
