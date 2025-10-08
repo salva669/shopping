@@ -1,6 +1,6 @@
 from django import forms
 from django.core.validators import MinValueValidator
-from .models import Bidhaas
+from .models import Bidhaas, Sale, SaleItem, Customer
 
 class DateInput(forms.DateInput):
     input_type = "date"
@@ -219,6 +219,61 @@ class SearchBidhaaForm(forms.Form):
         label='Show low stock items only'
     )
 
+class SaleForm(forms.ModelForm):
+    """Form for creating a new sale"""
+    
+    class Meta:
+        model = Sale
+        fields = ['customer_name', 'customer_phone', 'customer_email', 
+                  'payment_method', 'payment_reference', 'discount', 'tax', 'notes']
+        widgets = {
+            'customer_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Customer name (optional)'
+            }),
+            'customer_phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Customer phone (optional)'
+            }),
+            'customer_email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Customer email (optional)'
+            }),
+            'payment_method': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'payment_reference': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Mobile Money code, Bank ref, etc. (optional)'
+            }),
+            'discount': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+                'value': '0'
+            }),
+            'tax': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+                'value': '0'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Additional notes (optional)'
+            }),
+        }
+        labels = {
+            'customer_name': 'Customer Name',
+            'customer_phone': 'Phone Number',
+            'customer_email': 'Email',
+            'payment_method': 'Payment Method',
+            'payment_reference': 'Payment Reference',
+            'discount': 'Discount (TZS)',
+            'tax': 'Tax (TZS)',
+            'notes': 'Notes',
+        }
 
 class BulkUpdateQuantityForm(forms.Form):
     """Form for bulk updating quantities"""
