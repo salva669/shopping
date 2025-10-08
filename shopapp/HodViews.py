@@ -834,3 +834,16 @@ def add_to_cart(request):
     
     return JsonResponse({'success': False, 'message': 'Invalid request'})
 
+@login_required
+def remove_from_cart(request, bidhaa_id):
+    """Remove item from cart"""
+    
+    cart = request.session.get('cart', {})
+    
+    if str(bidhaa_id) in cart:
+        del cart[str(bidhaa_id)]
+        request.session['cart'] = cart
+        request.session.modified = True
+        messages.success(request, 'Item removed from cart')
+    
+    return redirect('make_sale')
