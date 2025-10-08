@@ -302,6 +302,51 @@ class AddToCartForm(forms.Form):
         label='Discount per item (TZS)'
     )
 
+class SearchSalesForm(forms.Form):
+    """Form for searching sales"""
+    
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search by sale number, customer...'
+        })
+    )
+    
+    date_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        label='From Date'
+    )
+    
+    date_to = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        label='To Date'
+    )
+    
+    payment_method = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All Payment Methods')] + Sale.PAYMENT_METHODS,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+    
+    status = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All Statuses')] + Sale.STATUS_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+    
 
 class BulkUpdateQuantityForm(forms.Form):
     """Form for bulk updating quantities"""
