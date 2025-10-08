@@ -869,3 +869,128 @@ def update_cart(request):
             })
     
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+@login_required
+def complete_sale(request):
+    """Complete the sale and process payment"""
+    
+    if request.method == 'POST':
+        form = SaleForm(request.POST)
+        cart = request.session.get('cart', {})
+        
+        if not cart:
+            messages.error(request, 'Cart is empty')
+            return redirect('make_sale')
+        
+        if form.is_valid():
+            try:
+                # Create sale
+                sale = form.save(commit=False)
+                sale.sold_by = request.user
+                
+                # Calculate totals
+                subtotal = Decimal('0.00')
+                
+                # First, validate stock for all items
+                for bidhaa_id, item_data in cart.items():
+                    bidhaa = Bidhaas.objects.get(id=bidhaa_id)
+                    if bidhaa.quantity < item_data['quantity']:
+                        messages.error(request, f'Insufficient stock for {bidhaa.jina}')
+                        return redirect('make_sale')
+                
+                # Create sale items and update stock
+                sale.subtotal = 0
+                sale.save()  # Save sale first to get ID
+                
+                for bidhaa_id, item_data in cart.items():
+                    bidhaa = Bidhaas.objects.get(id=bidhaa_id)
+                    
+                    # Create sale item
+                    sale_item = SaleItem.objects.create(
+                        sale=sale,
+                        bidhaa=bidhaa,
+                        quantity=item_data['quantity'],
+                        unit_price=bidhaa.price,
+                        discount=Decimal(str(item_data.get('discount', 0)))
+                    )
+                    
+                    subtotal += sale_item.subtotal
+                    
+                    # Update stock
+                    bidhaa.quantity -= item_data['quantity']
+                    bidhaa.save()
+                
+                # Update sale totals
+                sale.subtotal = subtotal
+                sale.save()
+                
+                # Clear cart
+                request.session['cart'] = {}
+                request.session.modified = True
+                
+                messages.success(request, f'Sale completed successfully! Sale Number: {sale.sale_number}')
+                return redirect('view_sale', sale_id=sale.id)
+                
+            except Exception as e:
+                messages.error(request, f'Error completing sale: {str(e)}')
+                return redirect('make_sale')
+        else:
+            messages.error(request, 'Please correct the form errors')
+            return redirect('make_sale')
+    
+    return redirect('make_sale')
+
+@login_required
+def sales_history(request):
+    """View sales history with filters"""
+    
+    # Get filter parameters
+    search_query = request.GET.get('search', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    payment_method = request.GET.get('payment_method', '')
+    status = request.GET.get('status', '')
+    
+    # Base queryset
+    sales = Sale.objects.all().select_related('sold_by')
+    
+    # Apply filters
+    if search_query:
+        sales = sales.filter(
+            Q(sale_number__icontains=search_query) |
+            Q(customer_name__icontains=search_query) |
+            Q(customer_phone__icontains=search_query)
+        )
+    
+    if date_from:
+        sales = sales.filter(sale_date__gte=date_from)
+    
+    if date_to:
+        sales = sales.filter(sale_date__lte=date_to)
+    
+    if payment_method:
+        sales = sales.filter(payment_method=payment_method)
+    
+    if status:
+        sales = sales.filter(status=status)
+    
+    # Pagination
+    paginator = Paginator(sales, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Calculate stats
+    total_sales = sales.aggregate(total=Sum('total_amount'))['total'] or 0
+    sales_count = sales.count()
+    
+    context = {
+        'sales': page_obj,
+        'search_form': SearchSalesForm(request.GET),
+        'is_paginated': page_obj.has_other_pages(),
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'total_sales': total_sales,
+        'sales_count': sales_count,
+    }
+    
+    return render(request, 'hod_template/sales_history_template.html', context)
