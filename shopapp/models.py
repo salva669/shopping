@@ -26,6 +26,31 @@ class Staffs(models.Model):
     updated_at=models.DateTimeField(auto_now_add=True)
     objects=models.Manager()
 
+
+class Customer(models.Model):
+    """Customer database"""
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20, unique=True)
+    email = models.EmailField(blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    
+    # Customer stats
+    total_purchases = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_sales = models.PositiveIntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    objects = models.Manager()
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ['name']
+
+
 class Courses(models.Model):
     id=models.AutoField(primary_key=True)
     course_name=models.CharField(max_length=255)
@@ -144,6 +169,7 @@ class SaleItem(models.Model):
     
     class Meta:
         ordering = ['id']
+
 
 class LeaveReportStaff(models.Model):
     id = models.AutoField(primary_key=True)
