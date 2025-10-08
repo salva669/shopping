@@ -1,5 +1,6 @@
 from django.contrib import messages
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
 from django.db.models import Q, F, Count, Sum, Avg 
@@ -9,10 +10,12 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
+from decimal import Decimal
 from shopapp.models import CustomUser, Staffs, Courses, Subjects, Bidhaas, FeedBackStaffs, \
-    LeaveReportStaff
+    LeaveReportStaff, Sale, SaleItem, Customer
 from .forms import AddBidhaaForm, EditBidhaaForm, SearchBidhaaForm, BulkUpdateQuantityForm
-import csv
+from .forms import SaleForm, AddToCartForm, SearchSalesForm, CustomerForm
+import csv, json
 
 
 def admin_home(request):
@@ -731,3 +734,52 @@ def export_bidhaa_csv(request):
         ])
     
     return response
+
+@login_required
+def make_sale(request):
+    """View for creating a new sale (POS interface)"""
+    
+    # Get cart from session
+    cart = request.session.get('cart', {})
+    
+    # Search for products
+    search_query = request.GET.get('search', '')
+    bidhaas = Bidhaas.objects.filter(quantity__gt=0).order_by('jina')
+    
+    if search_query:
+        bidhaas = bidhaas.filter(
+            Q(jina__icontains=search_query) |
+            Q(code__icontains=search_query) |
+            Q(category__icontains=search_query)
+        )
+    
+    # Calculate cart totals
+    cart_items = []
+    cart_subtotal = Decimal('0.00')
+    
+    for bidhaa_id, item_data in cart.items():
+        try:
+            bidhaa = Bidhaas.objects.get(id=bidhaa_id)
+            quantity = item_data['quantity']
+            discount = Decimal(str(item_data.get('discount', 0)))
+            subtotal = (bidhaa.price * quantity) - discount
+            
+            cart_items.append({
+                'bidhaa': bidhaa,
+                'quantity': quantity,
+                'discount': discount,
+                'subtotal': subtotal
+            })
+            cart_subtotal += subtotal
+        except Bidhaas.DoesNotExist:
+            pass
+    
+    context = {
+        'bidhaas': bidhaas[:20],  # Limit to 20 for performance
+        'cart_items': cart_items,
+        'cart_subtotal': cart_subtotal,
+        'search_query': search_query,
+        'form': SaleForm()
+    }
+    
+    return render(request, 'hod_template/make_sale_template.html', context)
