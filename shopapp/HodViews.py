@@ -1008,3 +1008,17 @@ def view_sale(request, sale_id):
     }
     
     return render(request, 'hod_template/view_sale_template.html', context)
+
+@login_required
+def print_invoice(request, sale_id):
+    """Generate printable invoice"""
+    
+    sale = get_object_or_404(Sale, id=sale_id)
+    sale_items = sale.items.all().select_related('bidhaa')
+    
+    context = {
+        'sale': sale,
+        'sale_items': sale_items,
+    }
+    
+    return render(request, 'hod_template/print_invoice_template.html', context)
