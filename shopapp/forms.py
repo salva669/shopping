@@ -275,6 +275,34 @@ class SaleForm(forms.ModelForm):
             'notes': 'Notes',
         }
 
+
+class AddToCartForm(forms.Form):
+    """Form for adding items to cart"""
+    
+    bidhaa_id = forms.IntegerField(widget=forms.HiddenInput())
+    quantity = forms.IntegerField(
+        min_value=1,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'min': '1',
+            'value': '1'
+        }),
+        label='Quantity'
+    )
+    discount = forms.DecimalField(
+        required=False,
+        min_value=0,
+        initial=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'step': '0.01',
+            'min': '0',
+            'value': '0'
+        }),
+        label='Discount per item (TZS)'
+    )
+
+
 class BulkUpdateQuantityForm(forms.Form):
     """Form for bulk updating quantities"""
     
