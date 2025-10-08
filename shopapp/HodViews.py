@@ -783,3 +783,54 @@ def make_sale(request):
     }
     
     return render(request, 'hod_template/make_sale_template.html', context)
+
+@login_required
+def add_to_cart(request):
+    """Add item to cart (AJAX)"""
+    
+    if request.method == 'POST':
+        bidhaa_id = request.POST.get('bidhaa_id')
+        quantity = int(request.POST.get('quantity', 1))
+        discount = Decimal(request.POST.get('discount', '0'))
+        
+        try:
+            bidhaa = Bidhaas.objects.get(id=bidhaa_id)
+            
+            # Check stock availability
+            if bidhaa.quantity < quantity:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Only {bidhaa.quantity} units available in stock'
+                })
+            
+            # Get cart from session
+            cart = request.session.get('cart', {})
+            
+            # Add or update item in cart
+            if str(bidhaa_id) in cart:
+                cart[str(bidhaa_id)]['quantity'] += quantity
+                cart[str(bidhaa_id)]['discount'] = float(discount)
+            else:
+                cart[str(bidhaa_id)] = {
+                    'quantity': quantity,
+                    'discount': float(discount)
+                }
+            
+            # Save cart to session
+            request.session['cart'] = cart
+            request.session.modified = True
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'{bidhaa.jina} added to cart',
+                'cart_count': len(cart)
+            })
+            
+        except Bidhaas.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Product not found'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
