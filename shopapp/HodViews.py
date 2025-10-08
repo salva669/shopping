@@ -994,3 +994,17 @@ def sales_history(request):
     }
     
     return render(request, 'hod_template/sales_history_template.html', context)
+
+@login_required
+def view_sale(request, sale_id):
+    """View detailed sale information"""
+    
+    sale = get_object_or_404(Sale, id=sale_id)
+    sale_items = sale.items.all().select_related('bidhaa')
+    
+    context = {
+        'sale': sale,
+        'sale_items': sale_items,
+    }
+    
+    return render(request, 'hod_template/view_sale_template.html', context)
