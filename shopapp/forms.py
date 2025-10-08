@@ -346,7 +346,33 @@ class SearchSalesForm(forms.Form):
             'class': 'form-control'
         })
     )
+
+
+class CustomerForm(forms.ModelForm):
+    """Form for adding/editing customers"""
     
+    class Meta:
+        model = Customer
+        fields = ['name', 'phone', 'email', 'address']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Full name'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+255...'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'customer@example.com'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Customer address'
+            }),
+        }
 
 class BulkUpdateQuantityForm(forms.Form):
     """Form for bulk updating quantities"""
