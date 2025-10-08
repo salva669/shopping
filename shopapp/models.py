@@ -119,6 +119,31 @@ class Sale(models.Model):
         
         super().save(*args, **kwargs)
 
+class SaleItem(models.Model):
+    """Individual items in a sale"""
+    id = models.AutoField(primary_key=True)
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='items')
+    bidhaa = models.ForeignKey('Bidhaas', on_delete=models.PROTECT)
+    
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    objects = models.Manager()
+    
+    def __str__(self):
+        return f"{self.bidhaa.jina} x {self.quantity}"
+    
+    def save(self, *args, **kwargs):
+        # Calculate subtotal
+        self.subtotal = (self.unit_price * self.quantity) - self.discount
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['id']
 
 class LeaveReportStaff(models.Model):
     id = models.AutoField(primary_key=True)
