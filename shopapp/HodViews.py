@@ -1022,3 +1022,50 @@ def print_invoice(request, sale_id):
     }
     
     return render(request, 'hod_template/print_invoice_template.html', context)
+
+@login_required
+def sales_dashboard(request):
+    """Sales dashboard with statistics"""
+    
+    from datetime import date
+    
+    # Today's sales
+    today = date.today()
+    today_sales = Sale.objects.filter(sale_date__date=today, status='completed')
+    today_total = today_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+    today_count = today_sales.count()
+    
+    # This week's sales
+    week_start = today - timedelta(days=today.weekday())
+    week_sales = Sale.objects.filter(sale_date__date__gte=week_start, status='completed')
+    week_total = week_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # This month's sales
+    month_sales = Sale.objects.filter(
+        sale_date__year=today.year,
+        sale_date__month=today.month,
+        status='completed'
+    )
+    month_total = month_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Top selling products
+    top_products = SaleItem.objects.values(
+        'bidhaa__jina', 'bidhaa__id'
+    ).annotate(
+        total_quantity=Sum('quantity'),
+        total_revenue=Sum('subtotal')
+    ).order_by('-total_quantity')[:10]
+    
+    # Recent sales
+    recent_sales = Sale.objects.all()[:10]
+    
+    context = {
+        'today_total': today_total,
+        'today_count': today_count,
+        'week_total': week_total,
+        'month_total': month_total,
+        'top_products': top_products,
+        'recent_sales': recent_sales,
+    }
+    
+    return render(request, 'hod_template/sales_dashboard_template.html', context)
