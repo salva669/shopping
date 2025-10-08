@@ -847,3 +847,25 @@ def remove_from_cart(request, bidhaa_id):
         messages.success(request, 'Item removed from cart')
     
     return redirect('make_sale')
+
+@login_required
+def update_cart(request):
+    """Update cart quantities (AJAX)"""
+    
+    if request.method == 'POST':
+        bidhaa_id = request.POST.get('bidhaa_id')
+        quantity = int(request.POST.get('quantity', 1))
+        
+        cart = request.session.get('cart', {})
+        
+        if str(bidhaa_id) in cart:
+            cart[str(bidhaa_id)]['quantity'] = quantity
+            request.session['cart'] = cart
+            request.session.modified = True
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Cart updated'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
