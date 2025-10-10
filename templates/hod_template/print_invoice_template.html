@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - {{ sale.sale_number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border: 1px solid #ddd;
+        }
+        
+        .invoice-header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .company-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .company-info h1 {
+            color: #007bff;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .company-info p {
+            color: #666;
+            margin: 3px 0;
+        }
+        
+        .invoice-title {
+            text-align: center;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .invoice-details .section {
+            width: 48%;
+        }
+        
+        .invoice-details h3 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .invoice-details p {
+            margin: 5px 0;
+        }
+        
+        .invoice-details strong {
+            display: inline-block;
+            width: 120px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        table thead {
+            background: #007bff;
+            color: white;
+        }
+        
+        table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        table tbody tr {
+            border-bottom: 1px solid #ddd;
+        }
+        
+        table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        table td {
+            padding: 10px 12px;
+        }
+        
+        table tbody tr:last-child {
+            border-bottom: 2px solid #007bff;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .totals {
+            margin-top: 20px;
+            float: right;
+            width: 300px;
+        }
+        
+        .totals table {
+            margin: 0;
+        }
+        
+        .totals td {
+            padding: 8px 12px;
+        }
+        
+        .totals .total-row {
+            background: #f8f9fa;
+            font-weight: bold;
+            font-size: 18px;
+            border-top: 2px solid #007bff;
+            color: #007bff;
+        }
+        
+        .invoice-footer {
+            clear: both;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #666;
+        }
+        
+        .notes {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .notes h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status-completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .status-cancelled {
+            background: #dc3545;
+            color: white;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .invoice-container {
+                border: none;
+                padding: 20px;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+        
+        .print-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .print-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- Print Button -->
+        <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+            <button class="print-button" onclick="window.print()">
+                🖨️ Print Invoice
+            </button>
+            <button class="print-button" onclick="window.close()" style="background: #6c757d;">
+                ✖️ Close
+            </button>
+        </div>
+        
+        <!-- Company Info -->
+        <div class="company-info">
+            <h1>YOUR COMPANY NAME</h1>
+            <p>123 Business Street, Dar es Salaam, Tanzania</p>
+            <p>Phone: +255 XXX XXX XXX | Email: info@company.com</p>
+            <p>TIN: XXXXXXXXXX</p>
+        </div>
+        
+        <!-- Invoice Title -->
+        <div class="invoice-title">
+            SALES INVOICE
+            {% if sale.status == 'completed' %}
+                <span class="status-badge status-completed">PAID</span>
+            {% elif sale.status == 'pending' %}
+                <span class="status-badge status-pending">PENDING</span>
+            {% else %}
+                <span class="status-badge status-cancelled">CANCELLED</span>
+            {% endif %}
+        </div>
+        
+        <!-- Invoice Details -->
+        <div class="invoice-details">
+            <div class="section">
+                <h3>Invoice Details</h3>
+                <p><strong>Invoice No:</strong> {{ sale.sale_number }}</p>
+                <p><strong>Date:</strong> {{ sale.sale_date|date:"M d, Y" }}</p>
+                <p><strong>Time:</strong> {{ sale.sale_date|date:"H:i" }}</p>
+                <p><strong>Sold By:</strong> {{ sale.sold_by.username }}</p>
+            </div>
+            
+            <div class="section">
+                <h3>Customer Details</h3>
+                {% if sale.customer_name %}
+                    <p><strong>Name:</strong> {{ sale.customer_name }}</p>
+                    {% if sale.customer_phone %}
+                        <p><strong>Phone:</strong> {{ sale.customer_phone }}</p>
+                    {% endif %}
+                    {% if sale.customer_email %}
+                        <p><strong>Email:</strong> {{ sale.customer_email }}</p>
+                    {% endif %}
+                {% else %}
+                    <p><strong>Customer:</strong> Walk-in Customer</p>
+                {% endif %}
+                <p><strong>Payment:</strong> {{ sale.get_payment_method_display }}</p>
+                {% if sale.payment_reference %}
+                    <p><strong>Reference:</strong> {{ sale.payment_reference }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Items Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th width="50">#</th>
+                    <th>Product Description</th>
+                    <th width="80" class="text-center">Qty</th>
+                    <th width="120" class="text-right">Unit Price</th>
+                    <th width="100" class="text-right">Discount</th>
+                    <th width="120" class="text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sale_items %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <strong>{{ item.bidhaa.jina }}</strong><br>
+                        <small style="color: #666;">Code: {{ item.bidhaa.code }}</small>
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">{{ item.unit_price|floatformat:2 }} TZS</td>
+                    <td class="text-right">
+                        {% if item.discount > 0 %}
+                            {{ item.discount|floatformat:2 }} TZS
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="text-right"><strong>{{ item.subtotal|floatformat:2 }} TZS</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Totals -->
+        <div class="totals">
+            <table>
+                <tr>
+                    <td>Subtotal:</td>
+                    <td class="text-right">{{ sale.subtotal|floatformat:2 }} TZS</td>
+                </tr>
+                {% if sale.discount > 0 %}
+                <tr>
+                    <td>Discount:</td>
+                    <td class="text-right" style="color: #dc3545;">-{{ sale.discount|floatformat:2 }} TZS</td>
+                </tr>
+                {% endif %}
+                {% if sale.tax > 0 %}
+                <tr>
+                    <td>Tax:</td>
+                    <td class="text-right">{{ sale.tax|floatformat:2 }} TZS</td>
+                </tr>
+                {% endif %}
+                <tr class="total-row">
+                    <td>TOTAL:</td>
+                    <td class="text-right">{{ sale.total_amount|floatformat:2 }} TZS</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Notes -->
+        {% if sale.notes %}
+        <div class="notes">
+            <h4>Notes:</h4>
+            <p>{{ sale.notes }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Footer -->
+        <div class="invoice-footer">
+            <p><strong>Thank you for your business!</strong></p>
+            <p style="margin-top: 10px; font-size: 12px;">
+                This is a computer-generated invoice and does not require a signature.
+            </p>
+            <p style="margin-top: 5px; font-size: 12px;">
+                For any queries, please contact us at info@company.com
+            </p>
+            <p style="margin-top: 20px; font-size: 11px; color: #999;">
+                Generated on {{ sale.created_at|date:"M d, Y H:i" }}
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-print option (commented out by default)
+        // window.onload = function() { window.print(); }
+    </script>
+</body>
+</html>
