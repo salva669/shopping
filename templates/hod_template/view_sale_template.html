@@ -1,0 +1,296 @@
+{% extends 'hod_template/base_template.html' %}
+{% load custom_filters %}
+{% block page_title %}
+Sale Details - {{ sale.sale_number }}
+{% endblock page_title %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    
+    <!-- Breadcrumb -->
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1>Sale Details - {{ sale.sale_number }}</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'sales_dashboard' %}">Sales Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'sales_history' %}">Sales History</a></li>
+          <li class="breadcrumb-item active">{{ sale.sale_number }}</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Sale Information -->
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-receipt"></i> Sale Information
+            </h3>
+            <div class="card-tools">
+              {% if sale.status == 'completed' %}
+                <span class="badge badge-success badge-lg">Completed</span>
+              {% elif sale.status == 'pending' %}
+                <span class="badge badge-warning badge-lg">Pending</span>
+              {% else %}
+                <span class="badge badge-danger badge-lg">Cancelled</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <table class="table table-borderless">
+                  <tr>
+                    <th width="45%"><i class="fas fa-hashtag text-primary"></i> Sale Number:</th>
+                    <td><strong>{{ sale.sale_number }}</strong></td>
+                  </tr>
+                  <tr>
+                    <th><i class="fas fa-calendar text-info"></i> Sale Date:</th>
+                    <td>{{ sale.sale_date|date:"M d, Y H:i" }}</td>
+                  </tr>
+                  <tr>
+                    <th><i class="fas fa-user text-success"></i> Sold By:</th>
+                    <td>{{ sale.sold_by.username }}</td>
+                  </tr>
+                  <tr>
+                    <th><i class="fas fa-credit-card text-warning"></i> Payment Method:</th>
+                    <td>
+                      <span class="badge badge-secondary">{{ sale.get_payment_method_display }}</span>
+                    </td>
+                  </tr>
+                  {% if sale.payment_reference %}
+                  <tr>
+                    <th><i class="fas fa-tag text-secondary"></i> Payment Ref:</th>
+                    <td><code>{{ sale.payment_reference }}</code></td>
+                  </tr>
+                  {% endif %}
+                </table>
+              </div>
+              <div class="col-md-6">
+                <table class="table table-borderless">
+                  <tr>
+                    <th width="45%"><i class="fas fa-user-circle text-primary"></i> Customer:</th>
+                    <td>
+                      {% if sale.customer_name %}
+                        {{ sale.customer_name }}
+                      {% else %}
+                        <span class="text-muted">Walk-in Customer</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% if sale.customer_phone %}
+                  <tr>
+                    <th><i class="fas fa-phone text-info"></i> Phone:</th>
+                    <td>{{ sale.customer_phone }}</td>
+                  </tr>
+                  {% endif %}
+                  {% if sale.customer_email %}
+                  <tr>
+                    <th><i class="fas fa-envelope text-success"></i> Email:</th>
+                    <td>{{ sale.customer_email }}</td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <th><i class="fas fa-clock text-secondary"></i> Created:</th>
+                    <td>{{ sale.created_at|date:"M d, Y H:i" }}</td>
+                  </tr>
+                  <tr>
+                    <th><i class="fas fa-edit text-warning"></i> Last Updated:</th>
+                    <td>{{ sale.updated_at|date:"M d, Y H:i" }}</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+
+            {% if sale.notes %}
+            <div class="row mt-3">
+              <div class="col-12">
+                <div class="alert alert-info">
+                  <strong><i class="fas fa-sticky-note"></i> Notes:</strong><br>
+                  {{ sale.notes }}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Sale Items -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-shopping-cart"></i> Items Sold
+            </h3>
+            <div class="card-tools">
+              <span class="badge badge-info">{{ sale_items|length }} items</span>
+            </div>
+          </div>
+          <div class="card-body table-responsive p-0">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th width="50px">#</th>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Discount</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in sale_items %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      {% if item.bidhaa.profile_pic %}
+                        <img src="{{ item.bidhaa.profile_pic.url }}" 
+                             alt="{{ item.bidhaa.jina }}"
+                             style="width:40px; height:40px; object-fit:cover; border-radius:5px;"
+                             class="mr-2">
+                      {% endif %}
+                      <div>
+                        <strong>{{ item.bidhaa.jina }}</strong>
+                        <br><small class="text-muted">Code: {{ item.bidhaa.code }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-info">{{ item.quantity }}</span></td>
+                  <td>{{ item.unit_price|floatformat:2 }} TZS</td>
+                  <td>
+                    {% if item.discount > 0 %}
+                      <span class="text-danger">-{{ item.discount|floatformat:2 }} TZS</span>
+                    {% else %}
+                      <span class="text-muted">0.00 TZS</span>
+                    {% endif %}
+                  </td>
+                  <td><strong>{{ item.subtotal|floatformat:2 }} TZS</strong></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sale Summary & Actions -->
+      <div class="col-md-4">
+        <!-- Summary Card -->
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-calculator"></i> Sale Summary
+            </h3>
+          </div>
+          <div class="card-body">
+            <table class="table table-borderless mb-0">
+              <tr>
+                <td>Subtotal:</td>
+                <td class="text-right"><strong>{{ sale.subtotal|floatformat:2 }} TZS</strong></td>
+              </tr>
+              <tr>
+                <td>Discount:</td>
+                <td class="text-right">
+                  {% if sale.discount > 0 %}
+                    <span class="text-danger">-{{ sale.discount|floatformat:2 }} TZS</span>
+                  {% else %}
+                    0.00 TZS
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>Tax:</td>
+                <td class="text-right">
+                  {% if sale.tax > 0 %}
+                    <span class="text-info">+{{ sale.tax|floatformat:2 }} TZS</span>
+                  {% else %}
+                    0.00 TZS
+                  {% endif %}
+                </td>
+              </tr>
+              <tr class="border-top">
+                <td><strong>Total Amount:</strong></td>
+                <td class="text-right">
+                  <h4 class="text-success mb-0">{{ sale.total_amount|floatformat:2 }} TZS</h4>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-tasks"></i> Actions
+            </h3>
+          </div>
+          <div class="card-body">
+            <a href="{% url 'print_invoice' sale_id=sale.id %}" 
+               class="btn btn-primary btn-block" target="_blank">
+              <i class="fas fa-print"></i> Print Invoice
+            </a>
+            <a href="{% url 'sales_history' %}" class="btn btn-secondary btn-block">
+              <i class="fas fa-arrow-left"></i> Back to Sales History
+            </a>
+            <a href="{% url 'make_sale' %}" class="btn btn-success btn-block">
+              <i class="fas fa-plus"></i> New Sale
+            </a>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-chart-bar"></i> Quick Stats
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-info">
+                <i class="fas fa-box"></i>
+              </span>
+              <div class="info-box-content">
+                <span class="info-box-text">Items Sold</span>
+                <span class="info-box-number">{{ sale_items|length }}</span>
+              </div>
+            </div>
+
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-success">
+                <i class="fas fa-cubes"></i>
+              </span>
+              <div class="info-box-content">
+                <span class="info-box-text">Total Quantity</span>
+                <span class="info-box-number">
+                  {% for item in sale_items %}
+                    {% if forloop.first %}{{ item.quantity }}{% endif %}
+                  {% endfor %}
+                  {% for item in sale_items %}
+                    {% if not forloop.first %}+ {{ item.quantity }}{% endif %}
+                  {% endfor %}
+                </span>
+              </div>
+            </div>
+
+            <div class="info-box">
+              <span class="info-box-icon bg-warning">
+                <i class="fas fa-percentage"></i>
+              </span>
+              <div class="info-box-content">
+                <span class="info-box-text">Total Discount</span>
+                <span class="info-box-number">{{ sale.discount|floatformat:2 }} TZS</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock main_content %}
