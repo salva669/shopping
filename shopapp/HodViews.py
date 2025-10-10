@@ -1069,3 +1069,268 @@ def sales_dashboard(request):
     }
     
     return render(request, 'hod_template/sales_dashboard_template.html', context)
+
+# Returns & Refunds
+
+class SaleReturn(models.Model):
+    """Model for sale returns - Add this to models.py"""
+    RETURN_REASONS = [
+        ('defective', 'Defective Product'),
+        ('wrong_item', 'Wrong Item'),
+        ('changed_mind', 'Changed Mind'),
+        ('expired', 'Expired Product'),
+        ('other', 'Other'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+    ]
+    
+    id = models.AutoField(primary_key=True)
+    return_number = models.CharField(max_length=50, unique=True)
+    sale = models.ForeignKey(Sale, on_delete=models.PROTECT, related_name='returns')
+    
+    return_date = models.DateTimeField(default=timezone.now)
+    reason = models.CharField(max_length=20, choices=RETURN_REASONS)
+    notes = models.TextField(blank=True, null=True)
+    
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    processed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    objects = models.Manager()
+    
+    def save(self, *args, **kwargs):
+        if not self.return_number:
+            from datetime import datetime
+            year = datetime.now().year
+            count = SaleReturn.objects.filter(return_date__year=year).count() + 1
+            self.return_number = f"RET-{year}-{count:04d}"
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['-return_date']
+
+
+class ReturnItem(models.Model):
+    """Items being returned - Add this to models.py"""
+    id = models.AutoField(primary_key=True)
+    sale_return = models.ForeignKey(SaleReturn, on_delete=models.CASCADE, related_name='items')
+    sale_item = models.ForeignKey(SaleItem, on_delete=models.PROTECT)
+    
+    quantity_returned = models.PositiveIntegerField()
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    objects = models.Manager()
+
+
+@login_required
+def process_return(request, sale_id):
+    """Process return for a sale"""
+    
+    sale = get_object_or_404(Sale, id=sale_id)
+    sale_items = sale.items.all()
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason')
+        notes = request.POST.get('notes')
+        refund_amount = Decimal(request.POST.get('refund_amount', '0'))
+        
+        # Get returned items
+        returned_items = []
+        for item in sale_items:
+            qty_key = f'return_qty_{item.id}'
+            qty = request.POST.get(qty_key)
+            if qty and int(qty) > 0:
+                returned_items.append({
+                    'sale_item': item,
+                    'quantity': int(qty)
+                })
+        
+        if not returned_items:
+            messages.error(request, 'Please select items to return')
+            return redirect('process_return', sale_id=sale_id)
+        
+        try:
+            # Create return record
+            sale_return = SaleReturn.objects.create(
+                sale=sale,
+                reason=reason,
+                notes=notes,
+                refund_amount=refund_amount,
+                status='approved',
+                processed_by=request.user
+            )
+            
+            # Create return items and restore stock
+            for ret_item in returned_items:
+                sale_item = ret_item['sale_item']
+                qty = ret_item['quantity']
+                
+                # Calculate refund for this item
+                item_refund = (sale_item.unit_price * qty) - (sale_item.discount / sale_item.quantity * qty)
+                
+                # Create return item
+                ReturnItem.objects.create(
+                    sale_return=sale_return,
+                    sale_item=sale_item,
+                    quantity_returned=qty,
+                    refund_amount=item_refund
+                )
+                
+                # Restore stock
+                bidhaa = sale_item.bidhaa
+                bidhaa.quantity += qty
+                bidhaa.save()
+            
+            messages.success(request, f'Return processed successfully. Return Number: {sale_return.return_number}')
+            return redirect('view_return', return_id=sale_return.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error processing return: {str(e)}')
+    
+    context = {
+        'sale': sale,
+        'sale_items': sale_items,
+    }
+    
+    return render(request, 'hod_template/process_return_template.html', context)
+
+
+@login_required
+def returns_history(request):
+    """View all returns"""
+    
+    search_query = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    
+    returns = SaleReturn.objects.all().select_related('sale', 'processed_by')
+    
+    if search_query:
+        returns = returns.filter(
+            Q(return_number__icontains=search_query) |
+            Q(sale__sale_number__icontains=search_query)
+        )
+    
+    if status:
+        returns = returns.filter(status=status)
+    
+    paginator = Paginator(returns, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'returns': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'page_obj': page_obj,
+        'paginator': paginator,
+    }
+    
+    return render(request, 'hod_template/returns_history_template.html', context)
+
+
+@login_required
+def view_return(request, return_id):
+    """View return details"""
+    
+    sale_return = get_object_or_404(SaleReturn, id=return_id)
+    return_items = sale_return.items.all().select_related('sale_item__bidhaa')
+    
+    context = {
+        'sale_return': sale_return,
+        'return_items': return_items,
+    }
+    
+    return render(request, 'hod_template/view_return_template.html', context)
+
+
+# Sales Reports
+
+@login_required
+def sales_reports(request):
+    """Generate sales reports"""
+    
+    from datetime import date, timedelta
+    
+    report_type = request.GET.get('type', 'daily')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
+    today = date.today()
+    
+    if report_type == 'daily':
+        start_date = today
+        end_date = today
+    elif report_type == 'weekly':
+        start_date = today - timedelta(days=today.weekday())
+        end_date = today
+    elif report_type == 'monthly':
+        start_date = today.replace(day=1)
+        end_date = today
+    elif report_type == 'custom':
+        start_date = date_from if date_from else today
+        end_date = date_to if date_to else today
+    else:
+        start_date = today
+        end_date = today
+    
+    # Get sales data
+    sales = Sale.objects.filter(
+        sale_date__date__gte=start_date,
+        sale_date__date__lte=end_date,
+        status='completed'
+    )
+    
+    # Calculate statistics
+    total_sales = sales.aggregate(total=Sum('total_amount'))['total'] or 0
+    sales_count = sales.count()
+    avg_sale = sales.aggregate(avg=Avg('total_amount'))['avg'] or 0
+    
+    # Payment method breakdown
+    payment_breakdown = sales.values('payment_method').annotate(
+        count=Count('id'),
+        total=Sum('total_amount')
+    )
+    
+    # Top products
+    top_products = SaleItem.objects.filter(
+        sale__in=sales
+    ).values('bidhaa__jina').annotate(
+        total_qty=Sum('quantity'),
+        total_revenue=Sum('subtotal')
+    ).order_by('-total_revenue')[:10]
+    
+    # Daily breakdown
+    daily_sales = []
+    current_date = start_date
+    while current_date <= end_date:
+        day_sales = sales.filter(sale_date__date=current_date)
+        daily_total = day_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+        daily_sales.append({
+            'date': current_date,
+            'total': daily_total,
+            'count': day_sales.count()
+        })
+        current_date += timedelta(days=1)
+    
+    context = {
+        'report_type': report_type,
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_sales': total_sales,
+        'sales_count': sales_count,
+        'avg_sale': avg_sale,
+        'payment_breakdown': payment_breakdown,
+        'top_products': top_products,
+        'daily_sales': daily_sales,
+    }
+    
+    return render(request, 'hod_template/sales_reports_template.html', context)
