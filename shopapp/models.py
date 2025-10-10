@@ -170,6 +170,64 @@ class SaleItem(models.Model):
     class Meta:
         ordering = ['id']
 
+class SaleReturn(models.Model):
+    """Model for sale returns - Add this to models.py"""
+    RETURN_REASONS = [
+        ('defective', 'Defective Product'),
+        ('wrong_item', 'Wrong Item'),
+        ('changed_mind', 'Changed Mind'),
+        ('expired', 'Expired Product'),
+        ('other', 'Other'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+    ]
+    
+    id = models.AutoField(primary_key=True)
+    return_number = models.CharField(max_length=50, unique=True)
+    sale = models.ForeignKey(Sale, on_delete=models.PROTECT, related_name='returns')
+    
+    return_date = models.DateTimeField(default=timezone.now)
+    reason = models.CharField(max_length=20, choices=RETURN_REASONS)
+    notes = models.TextField(blank=True, null=True)
+    
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    processed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    objects = models.Manager()
+    
+    def save(self, *args, **kwargs):
+        if not self.return_number:
+            from datetime import datetime
+            year = datetime.now().year
+            count = SaleReturn.objects.filter(return_date__year=year).count() + 1
+            self.return_number = f"RET-{year}-{count:04d}"
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['-return_date']
+
+
+class ReturnItem(models.Model):
+    """Items being returned - Add this to models.py"""
+    id = models.AutoField(primary_key=True)
+    sale_return = models.ForeignKey(SaleReturn, on_delete=models.CASCADE, related_name='items')
+    sale_item = models.ForeignKey(SaleItem, on_delete=models.PROTECT)
+    
+    quantity_returned = models.PositiveIntegerField()
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    objects = models.Manager()
 
 class LeaveReportStaff(models.Model):
     id = models.AutoField(primary_key=True)
