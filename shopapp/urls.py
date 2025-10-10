@@ -44,6 +44,17 @@ urlpatterns = [
     path('bidhaa_statistics/', HodViews.bidhaa_statistics, name='bidhaa_statistics'),
     path('bulk_update_quantities/', HodViews.bulk_update_quantities, name='bulk_update_quantities'),
     path('export_bidhaa_csv/', HodViews.export_bidhaa_csv, name='export_bidhaa_csv'),
+
+    # Sales Management URLs
+    path('sales_dashboard/', HodViews.sales_dashboard, name='sales_dashboard'),
+    path('make_sale/', HodViews.make_sale, name='make_sale'),
+    path('add_to_cart/', HodViews.add_to_cart, name='add_to_cart'),
+    path('remove_from_cart/<int:bidhaa_id>/', HodViews.remove_from_cart, name='remove_from_cart'),
+    path('update_cart/', HodViews.update_cart, name='update_cart'),
+    path('complete_sale/', HodViews.complete_sale, name='complete_sale'),
+    path('sales_history/', HodViews.sales_history, name='sales_history'),
+    path('view_sale/<int:sale_id>/', HodViews.view_sale, name='view_sale'),
+    path('print_invoice/<int:sale_id>/', HodViews.print_invoice, name='print_invoice'),
     
     # AJAX endpoints (optional)
     path('ajax/get_bidhaa_details/<int:bidhaa_id>/', HodViews.get_bidhaa_details, name='get_bidhaa_details'),
@@ -64,6 +75,13 @@ urlpatterns = [
     path('admin_profile_save', HodViews.admin_profile_save,name="admin_profile_save"),
     path('send_staff_notification', HodViews.send_staff_notification,name="send_staff_notification"),
     
+    # Returns & Refunds URLs
+    path('process_return/<int:sale_id>/', HodViews.process_return, name='process_return'),
+    path('returns_history/', HodViews.returns_history, name='returns_history'),
+    path('view_return/<int:return_id>/', HodViews.view_return, name='view_return'),
+
+    # Reports URLs
+    path('sales_reports/', HodViews.sales_reports, name='sales_reports'),
 
 #     Staff URL Path
     path('staff_home', StaffViews.staff_home, name="staff_home"),
