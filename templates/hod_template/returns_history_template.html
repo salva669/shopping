@@ -1,0 +1,198 @@
+{% extends 'hod_template/base_template.html' %}
+{% load custom_filters %}
+{% block page_title %}
+Returns History
+{% endblock page_title %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1><i class="fas fa-undo"></i> Returns History</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'sales_dashboard' %}">Dashboard</a></li>
+          <li class="breadcrumb-item active">Returns</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">All Returns & Refunds</h3>
+          </div>
+          
+          <!-- Filters -->
+          <div class="card-body border-bottom">
+            <form method="GET" class="row">
+              <div class="col-md-4">
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Search by return number or sale number..." 
+                       value="{{ request.GET.search }}">
+              </div>
+              <div class="col-md-3">
+                <select name="status" class="form-control">
+                  <option value="">All Statuses</option>
+                  <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                  <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                  <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                  <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <button type="submit" class="btn btn-primary btn-block">
+                  <i class="fas fa-filter"></i> Filter
+                </button>
+              </div>
+              <div class="col-md-2">
+                {% if request.GET.search or request.GET.status %}
+                  <a href="{% url 'returns_history' %}" class="btn btn-secondary btn-block">
+                    <i class="fas fa-times"></i> Clear
+                  </a>
+                {% endif %}
+              </div>
+            </form>
+          </div>
+          
+          <div class="card-body table-responsive p-0">
+            {% if returns %}
+              <table class="table table-hover text-nowrap">
+                <thead>
+                  <tr>
+                    <th>Return #</th>
+                    <th>Sale #</th>
+                    <th>Return Date</th>
+                    <th>Items</th>
+                    <th>Refund Amount</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Processed By</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for return in returns %}
+                    <tr>
+                      <td><strong>{{ return.return_number }}</strong></td>
+                      <td>
+                        <a href="{% url 'view_sale' sale_id=return.sale.id %}">
+                          {{ return.sale.sale_number }}
+                        </a>
+                      </td>
+                      <td>{{ return.return_date|date:"M d, Y H:i" }}</td>
+                      <td>
+                        <span class="badge badge-info">{{ return.items.count }} items</span>
+                      </td>
+                      <td>
+                        <strong class="text-danger">{{ return.refund_amount|floatformat:2 }} TZS</strong>
+                      </td>
+                      <td>
+                        {% if return.reason == 'defective' %}
+                          <span class="badge badge-warning">Defective</span>
+                        {% elif return.reason == 'wrong_item' %}
+                          <span class="badge badge-info">Wrong Item</span>
+                        {% elif return.reason == 'changed_mind' %}
+                          <span class="badge badge-secondary">Changed Mind</span>
+                        {% elif return.reason == 'expired' %}
+                          <span class="badge badge-danger">Expired</span>
+                        {% elif return.reason == 'damaged' %}
+                          <span class="badge badge-warning">Damaged</span>
+                        {% else %}
+                          <span class="badge badge-light">Other</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if return.status == 'pending' %}
+                          <span class="badge badge-warning">Pending</span>
+                        {% elif return.status == 'approved' %}
+                          <span class="badge badge-success">Approved</span>
+                        {% elif return.status == 'rejected' %}
+                          <span class="badge badge-danger">Rejected</span>
+                        {% else %}
+                          <span class="badge badge-primary">Completed</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if return.processed_by %}
+                          {{ return.processed_by.username }}
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        <a href="{% url 'view_return' return_id=return.id %}" 
+                           class="btn btn-info btn-sm">
+                          <i class="fas fa-eye"></i> View
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              
+              <!-- Pagination -->
+              {% if is_paginated %}
+                <div class="card-footer">
+                  <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                      <div class="dataTables_info">
+                        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ paginator.count }}
+                      </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                      <div class="dataTables_paginate paging_simple_numbers">
+                        <ul class="pagination">
+                          {% if page_obj.has_previous %}
+                            <li class="paginate_button page-item">
+                              <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+                            </li>
+                          {% endif %}
+                          
+                          {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                              <li class="paginate_button page-item active">
+                                <a href="#" class="page-link">{{ num }}</a>
+                              </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                              <li class="paginate_button page-item">
+                                <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+                              </li>
+                            {% endif %}
+                          {% endfor %}
+                          
+                          {% if page_obj.has_next %}
+                            <li class="paginate_button page-item">
+                              <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+                            </li>
+                          {% endif %}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="text-center p-5">
+                <i class="fas fa-undo fa-3x text-muted mb-3"></i>
+                <h4>No Returns Found</h4>
+                <p class="text-muted">
+                  {% if request.GET.search or request.GET.status %}
+                    No returns match your search criteria
+                  {% else %}
+                    No product returns have been processed yet
+                  {% endif %}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock main_content %}
