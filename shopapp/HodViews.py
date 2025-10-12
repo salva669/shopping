@@ -11,53 +11,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal
-from shopapp.models import CustomUser, Staffs, Courses, Subjects, Bidhaas, FeedBackStaffs, \
+from shopapp.models import CustomUser, Staffs,  Bidhaas, FeedBackStaffs, \
     LeaveReportStaff, Sale, SaleItem, Customer
 from .forms import AddBidhaaForm, EditBidhaaForm, SearchBidhaaForm, BulkUpdateQuantityForm
 from .forms import SaleForm, AddToCartForm, SearchSalesForm, CustomerForm
 import csv, json
-
-
-def admin_home(request):
-    bidhaa_count=Bidhaas.objects.all().count()
-    staff_count=Staffs.objects.all().count()
-    subject_count=Subjects.objects.all().count()
-    course_count=Courses.objects.all().count()
-
-    course_all=Courses.objects.all()
-    course_name_list=[]
-    subject_count_list=[]
-    bidhaa_count_list_in_course=[]
-    for course in course_all:
-        subjects=Subjects.objects.filter(course_id=course.id).count()
-        bidhaas=Bidhaas.objects.filter(course_id=course.id).count()
-        course_name_list.append(course.course_name)
-        subject_count_list.append(subjects)
-        bidhaa_count_list_in_course.append(bidhaas)
-
-    subjects_all=Subjects.objects.all()
-    subject_list=[]
-    bidhaa_count_list_in_subject=[]
-    for subject in subjects_all:
-        course=Courses.objects.get(id=subject.course_id.id)
-        bidhaa_count=Bidhaas.objects.filter(course_id=course.id).count()
-        subject_list.append(subject.subject_name)
-        bidhaa_count_list_in_subject.append(bidhaa_count)
-
-    staffs=Staffs.objects.all()
-    staff_name_list=[]
-    for staff in staffs:
-        subject_ids=Subjects.objects.filter(staff_id=staff.admin.id)
-        leaves=LeaveReportStaff.objects.filter(staff_id=staff.id,leave_status=1).count()
-        staff_name_list.append(staff.admin.username)
-
-    bidhaas_all=Bidhaas.objects.all()
-    bidhaa_name_list=[]
-    for bidhaa in bidhaas_all:
-        bidhaa_name_list.append(bidhaa.jina)
-
-
-    return render(request,"hod_template/home_content.html",{"bidhaa_count":bidhaa_count,"staff_count":staff_count,"subject_count":subject_count,"course_count":course_count,"course_name_list":course_name_list,"subject_count_list":subject_count_list,"bidhaa_count_list_in_course":bidhaa_count_list_in_course,"bidhaa_count_list_in_subject":bidhaa_count_list_in_subject,"subject_list":subject_list,"staff_name_list":staff_name_list})
 
 def add_staff(request):
     return render(request,"hod_template/add_staff_template.html")
@@ -87,22 +45,6 @@ def add_staff_save(request):
                 reverse("add_staff")
                 )
 
-def add_course(request):
-    return render(request,"hod_template/add_course_template.html")
-
-def add_course_save(request):
-    if request.method!="POST":
-        return HttpResponse("Method Not Allowed")
-    else:
-        course=request.POST.get("course")
-        try:
-            course_model=Courses(course_name=course)
-            course_model.save()
-            messages.success(request,"Successfully Added Course")
-            return HttpResponseRedirect(reverse("add_course"))
-        except:
-            messages.error(request,"Failed To Add Course")
-            return HttpResponseRedirect(reverse("add_course"))
 
 @login_required
 def add_bidhaa(request):
@@ -178,35 +120,6 @@ def add_bidhaa(request):
             )
 """
 
-
-def add_subject(request):
-    courses=Courses.objects.all()
-    staffs=CustomUser.objects.filter(user_type=2)
-    return render(request,"hod_template/add_subject_template.html",{"staffs":staffs,"courses":courses})
-
-def add_subject_save(request):
-    if request.method!="POST":
-        return HttpResponse("<h2>Method Not Allowed</h2>")
-    else:
-        subject_name=request.POST.get("subject_name")
-        course_id=request.POST.get("course")
-        course=Courses.objects.get(id=course_id)
-        staff_id=request.POST.get("staff")
-        staff=CustomUser.objects.get(id=staff_id)
-
-        try:
-            subject=Subjects(subject_name=subject_name,course_id=course,staff_id=staff)
-            subject.save()
-            messages.success(request,"Successfully Added Subject")
-            return HttpResponseRedirect(
-                reverse("add_subject")
-                )
-        except:
-            messages.error(request,"Failed to Add Subject")
-            return HttpResponseRedirect(
-                reverse("add_subject")
-                )
-
 def manage_staff(request):
     staffs=Staffs.objects.all()
     return render(request,"hod_template/manage_staff_template.html",{"staffs":staffs})
@@ -276,14 +189,6 @@ def manage_bidhaa(request):
 
     return render(request, "hod_template/manage_bidhaa_template.html", context)
 
-def manage_course(request):
-    courses=Courses.objects.all()
-    return render(request,"hod_template/manage_course_template.html",{"courses":courses})
-
-def manage_subject(request):
-    subjects=Subjects.objects.all()
-    return render(request,"hod_template/manage_subject_template.html",{"subjects":subjects})
-
 def edit_staff(request,staff_id):
     staff=Staffs.objects.get(admin=staff_id)
     return render(request,"hod_template/edit_staff_template.html",{"staff":staff,"id":staff_id})
@@ -347,56 +252,6 @@ def edit_bidhaa(request, bidhaa_id):
     }  
 
     return render(request, "hod_template/edit_bidhaa_template.html", context)
-
-def edit_subject(request,subject_id):
-    subject=Subjects.objects.get(id=subject_id)
-    courses=Courses.objects.all()
-    staffs=CustomUser.objects.filter(user_type=2)
-    return render(request,"hod_template/edit_subject_template.html",{"subject":subject,"staffs":staffs,"courses":courses,"id":subject_id})
-
-def edit_subject_save(request):
-    if request.method!="POST":
-        return HttpResponse("<h2>Method Not Allowed</h2>")
-    else:
-        subject_id=request.POST.get("subject_id")
-        subject_name=request.POST.get("subject_name")
-        staff_id=request.POST.get("staff")
-        course_id=request.POST.get("course")
-        try:
-            subject=Subjects.objects.get(id=subject_id)
-            subject.subject_name=subject_name
-            staff=CustomUser.objects.get(id=staff_id)
-            subject.staff_id=staff
-            course=Courses.objects.get(id=course_id)
-            subject.course_id=course
-            subject.save()
-
-            messages.success(request,"Successfully Edited Subject")
-            return HttpResponseRedirect(reverse("edit_subject",kwargs={"subject_id":subject_id}))
-        except:
-            messages.error(request,"Failed to Edit Subject")
-            return HttpResponseRedirect(reverse("edit_subject",kwargs={"subject_id":subject_id}))
-
-
-def edit_course(request,course_id):
-    course=Courses.objects.get(id=course_id)
-    return render(request,"hod_template/edit_course_template.html",{"course":course,"id":course_id})
-
-def edit_course_save(request):
-    if request.method!="POST":
-        return HttpResponse("<h2>Method Not Allowed</h2>")
-    else:
-        course_id=request.POST.get("course_id")
-        course_name=request.POST.get("course")
-        try:
-            course=Courses.objects.get(id=course_id)
-            course.course_name=course_name
-            course.save()
-            messages.success(request,"Successfully Edited Course")
-            return HttpResponseRedirect(reverse("edit_course",kwargs={"course_id":course_id}))
-        except:
-            messages.error(request,"Failed to Edit Course")
-            return HttpResponseRedirect(reverse("edit_course",kwargs={"course_id":course_id}))
 
 def staff_feedback_message(request):
     feedbacks=FeedBackStaffs.objects.all()

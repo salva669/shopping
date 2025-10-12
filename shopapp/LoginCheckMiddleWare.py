@@ -18,7 +18,7 @@ class LoginCheckMiddleWare(MiddlewareMixin):
                 elif modulename == "django.contrib.auth.views" or modulename =="django.contrib.admin.sites":
                     pass
                 else:
-                    return HttpResponseRedirect(reverse("admin_home"))
+                    return HttpResponseRedirect(reverse("sales_dashboard"))
             elif user.user_type == "2":
                 if modulename == "shopapp.StaffViews" or modulename == "shopapp.EditResultVIewClass":
                     pass

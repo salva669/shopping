@@ -23,9 +23,9 @@
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
             <li class="nav-item">
-              {% url 'admin_home' as admin_home %}
-              <a href="{{ admin_home }}" class="nav-link {% if request.path == admin_home %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+              {% url 'sales_dashboard' as sales_dashboard %}
+              <a href="{{ sales_dashboard }}" class="nav-link {% if request.path == sales_dashboard %} active {% endif %}">
+                <i class="nav-icon fas fa-home"></i>
                 <p>
                   Home
                 </p>
@@ -34,7 +34,7 @@
             <li class="nav-item">
             {% url 'add_staff' as add_staff %}
             <a href="{{ add_staff }}" class="nav-link {% if request.path == add_staff %} active {% endif %}">
-              <i class="nav-icon fas fa-th"></i>
+              <i class="nav-icon fas fa-user-plus"></i>
               <p>
                 Add Staff
               </p>
@@ -44,7 +44,7 @@
             {% url 'manage_staff' as manage_staff %}
             {% url 'edit_staff' staff_id=id as edit_staff %}
             <a href="{% url 'manage_staff' %}" class="nav-link {% if request.path == manage_staff %} active {% endif %} {% if request.path == edit_staff %} active {% endif %}">
-              <i class="nav-icon fas fa-th"></i>
+              <i class="nav-icon fas fa-users-cog"></i>
               <p>
                 Manage Staff
               </p>
@@ -53,7 +53,7 @@
           <li class="nav-item">
             {% url 'add_bidhaa' as add_bidhaa %}
             <a href="{% url 'add_bidhaa' %}" class="nav-link {% if request.path == add_bidhaa %} active {% endif %}">
-              <i class="nav-icon fas fa-th"></i>
+              <i class="nav-icon fas fa-box-open"></i>
               <p>
                 Add Bidhaa
               </p>
@@ -63,16 +63,10 @@
             {% url 'manage_bidhaa' as manage_bidhaa %}
             {% url 'edit_bidhaa' bidhaa_id=id as edit_bidhaa %}
           <a href="{% url 'manage_bidhaa' %}" class="nav-link {% if request.path == manage_bidhaa %} active {% endif %} {% if request.path == edit_bidhaa %} active {% endif %}">
-              <i class="nav-icon fas fa-th"></i>
+            <i class="nav-icon fas fa-boxes"></i>
               <p>
                 Manage Bidhaa
               </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'sales_dashboard' %}" class="nav-link">
-              <i class="nav-icon fas fa-chart-line"></i>
-              <p>Sales Dashboard</p>
             </a>
           </li>
           <li class="nav-item">
@@ -88,28 +82,9 @@
             </a>
           </li>
           <li class="nav-item">
-            {% url 'add_subject' as add_subject %}
-            <a href="{% url 'add_subject' %}" class="nav-link {% if request.path == add_subject %} active {% endif %}">
-              <i class="nav-icon fas fa-th"></i>
-              <p>
-                Add Kategory
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            {% url 'manage_subject' as manage_subject %}
-            {% url 'edit_subject' subject_id=id as edit_subject %}
-            <a href="{% url 'manage_subject' %}" class="nav-link {% if request.path == manage_subject %} active {% endif %} {% if request.path == edit_subject %} active {% endif %} ">
-              <i class="nav-icon fas fa-th"></i>
-              <p>
-                Manage Kategory
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
             {% url 'staff_feedback_message' as staff_feedback_message %}
             <a href="{% url 'staff_feedback_message' %}" class="nav-link {% if request.path == staff_feedback_message %} active {% endif %}">
-            <i class="nav-icon fas fa-th"></i>
+              <i class="nav-icon fas fa-comments"></i>
             <p>
               Staff Feedback
               <!-- <span class="right badge badge-danger">New</span> -->
@@ -119,16 +94,16 @@
          <li class="nav-item">
               {% url 'staff_leave_view' as staff_leave_view %}
          <a href="{% url 'staff_leave_view' %}" class="nav-link {% if request.path == staff_leave_view %} active {% endif %}">
-           <i class="nav-icon fas fa-th"></i>
+          <i class="nav-icon fas fa-calendar-check"></i>
            <p>
              Staff Leave
            </p>
          </a>
        </li>
        <li class="nav-item">
-        {% url 'staff_feedback_message' as staff_feedback_message %}
-        <a href="{% url 'staff_feedback_message' %}" class="nav-link {% if request.path == staff_feedback_message %} active {% endif %}">
-        <i class="nav-icon fas fa-th"></i>
+        {% url 'sales_reports' as sales_reports %}
+        <a href="{% url 'sales_reports' %}" class="nav-link {% if request.path == sales_reports %} active {% endif %}">
+          <i class="nav-icon fas fa-chart-bar"></i>
         <p>
           Reports
           <!-- <span class="right badge badge-danger">New</span> -->

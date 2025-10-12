@@ -6,67 +6,12 @@ Home
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-          <div class="row">
-            <div class="col-lg-3 col-6">
-              <!-- small box -->
-              <div class="small-box bg-success">
-                <div class="inner">
-                  <h3>{{ subject_count }}</h3>
-  
-                  <p>Mauzo</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-pie-graph"></i>
-                </div>
-                <a href="{% url 'manage_subject' %}" class="small-box-footer">Zaidi<i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
+          
+             
+          
+              
           <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-warning">
-              <div class="inner">
-                <h3>{{ subject_count }}</h3>
-
-                <p>Bidhaa Zilizopo</p>
-              </div>
-              <div class="icon">
-                <i class="ion ion-pie-graph"></i>
-              </div>
-              <a href="{% url 'manage_subject' %}" class="small-box-footer">Zaidi<i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-danger">
-              <div class="inner">
-                <h3>{{ subject_count }}</h3>
-
-                <p>Madeni</p>
-              </div>
-              <div class="icon">
-                <i class="ion ion-pie-graph"></i>
-              </div>
-              <a href="{% url 'manage_subject' %}" class="small-box-footer">Zaidi<i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-danger">
-              <div class="inner">
-                <h3>{{ subject_count }}</h3>
-
-                <p>Matumizi</p>
-              </div>
-              <div class="icon">
-                <i class="ion ion-pie-graph"></i>
-              </div>
-              <a href="{% url 'manage_subject' %}" class="small-box-footer">Zaidi<i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
+          
         </div>
           <div class="row">
               <div class="col-lg-6">
@@ -160,113 +105,5 @@ Home
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
-<script>
-  $(document).ready(function() {
-    // -------- Pie Chart: Student vs Staff -------- //
-    var bidhaaCount = Number("{{ bidhaa_count|default:'0' }}");
-    var staffCount = Number("{{ staff_count|default:'0' }}");
-
-    var pieChartCanvas = $('#pieChart').get(0);
-    if (!pieChartCanvas) {
-        console.error("Canvas element with id 'pieChart' not found.");
-        return;
-    }
-
-    var pieCtx = pieChartCanvas.getContext('2d');
-
-    if (!isNaN(bidhaaCount) && !isNaN(staffCount)) {
-        var pieData = {
-            labels: ['Bidhaas', 'Staff'],
-            datasets: [{
-                data: [bidhaaCount, staffCount],
-                backgroundColor: ['#00c0ef', '#00a65a'],
-            }]
-        };
-
-        var pieChart = new Chart(pieCtx, {
-            type: 'pie',
-            data: pieData,
-            options: {
-                maintainAspectRatio: false,
-                responsive: true,
-                plugins: {
-                    datalabels: {
-                        formatter: (value, context) => {
-                            const data = context.chart.data.datasets[0].data;
-                            const total = data.reduce((a, b) => a + b, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            return percentage + '%';
-                        },
-                        color: '#fff',
-                        font: {
-                            weight: 'bold',
-                            size: 14
-                        }
-                    }
-                }
-            },
-            plugins: [ChartDataLabels]
-        });
-    } else {
-        console.error("Invalid data for pie chart.");
-    }
-
-    // -------- Bar Chart: Subjects per Course -------- //
-    try {
-        var subject_count_list = {{ subject_count_list|safe }};
-        var course_name_list = {{ course_name_list|safe }};
-
-        var barChartCanvas = $('#barChart').get(0);
-        if (!barChartCanvas) {
-            console.error("Canvas element with id 'barChart' not found.");
-            return;
-        }
-
-        var barCtx = barChartCanvas.getContext('2d');
-
-        var barData = {
-            labels: course_name_list,
-            datasets: [{
-                label: 'Number of Subjects',
-                data: subject_count_list,
-                backgroundColor: '#3c8dbc',
-                borderColor: '#2c6ba0',
-                borderWidth: 1
-            }]
-        };
-
-        var barOptions = {
-            maintainAspectRatio: false,
-            responsive: true,
-            
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                },
-                x: {
-                    ticks: {
-                        autoSkip: false,
-                        maxRotation: 45,
-                        minRotation: 30
-                    }
-                }
-            }
-        };
-
-        var barChart = new Chart(barCtx, {
-            type: 'bar',
-            data: barData,
-            options: barOptions,
-            
-        });
-    } catch (err) {
-        console.error("Error rendering bar chart:", err);
-    }
-  });
-</script>
 
 {% endblock custom_js %}
