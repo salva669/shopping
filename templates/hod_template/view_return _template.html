@@ -240,4 +240,57 @@ Return Details - {{ sale_return.return_number }}
                 <i class="fas fa-money-bill-wave"></i>
               </span>
               <div class="info-box-content">
-                <span class="info-box-text">
+                <span class="info-box-text">Refund Amount</span>
+                <span class="info-box-number">{{ sale_return.refund_amount|floatformat:0 }} TZS</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Original Sale Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-receipt"></i> Original Sale
+            </h3>
+          </div>
+          <div class="card-body">
+            <table class="table table-sm table-borderless">
+              <tr>
+                <td>Sale Number:</td>
+                <td class="text-right">
+                  <strong>{{ sale_return.sale.sale_number }}</strong>
+                </td>
+              </tr>
+              <tr>
+                <td>Sale Date:</td>
+                <td class="text-right">{{ sale_return.sale.sale_date|date:"M d, Y" }}</td>
+              </tr>
+              <tr>
+                <td>Original Total:</td>
+                <td class="text-right">
+                  <strong>{{ sale_return.sale.total_amount|floatformat:2 }} TZS</strong>
+                </td>
+              </tr>
+              <tr>
+                <td>Refunded:</td>
+                <td class="text-right text-danger">
+                  <strong>-{{ sale_return.refund_amount|floatformat:2 }} TZS</strong>
+                </td>
+              </tr>
+              <tr class="border-top">
+                <td><strong>Net Amount:</strong></td>
+                <td class="text-right">
+                  <strong class="text-success">
+                    {{ sale_return.sale.total_amount|sub:sale_return.refund_amount|floatformat:2 }} TZS
+                  </strong>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock main_content %}

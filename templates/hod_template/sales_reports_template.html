@@ -1,0 +1,407 @@
+{% extends 'hod_template/base_template.html' %}
+{% load custom_filters %}
+{% block page_title %}
+Sales Reports
+{% endblock page_title %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1><i class="fas fa-chart-bar"></i> Sales Reports</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'sales_dashboard' %}">Dashboard</a></li>
+          <li class="breadcrumb-item active">Reports</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Report Type Selection -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title">Select Report Type</h3>
+          </div>
+          <div class="card-body">
+            <form method="GET" class="row">
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label>Report Type</label>
+                  <select name="type" class="form-control" id="reportType" onchange="toggleDateInputs()">
+                    <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Daily</option>
+                    <option value="weekly" {% if report_type == 'weekly' %}selected{% endif %}>Weekly</option>
+                    <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>Monthly</option>
+                    <option value="custom" {% if report_type == 'custom' %}selected{% endif %}>Custom Date Range</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-3" id="dateFromDiv" style="{% if report_type != 'custom' %}display:none;{% endif %}">
+                <div class="form-group">
+                  <label>From Date</label>
+                  <input type="date" name="date_from" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+              </div>
+              <div class="col-md-3" id="dateToDiv" style="{% if report_type != 'custom' %}display:none;{% endif %}">
+                <div class="form-group">
+                  <label>To Date</label>
+                  <input type="date" name="date_to" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-search"></i> Generate Report
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row">
+      <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+          <div class="inner">
+            <h3>{{ sales_count }}</h3>
+            <p>Total Sales</p>
+          </div>
+          <div class="icon">
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+          <div class="inner">
+            <h3>{{ total_sales|floatformat:0 }}</h3>
+            <p>Revenue (TZS)</p>
+          </div>
+          <div class="icon">
+            <i class="fas fa-money-bill-wave"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning">
+          <div class="inner">
+            <h3>{{ avg_sale|floatformat:0 }}</h3>
+            <p>Avg Sale (TZS)</p>
+          </div>
+          <div class="icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+          <div class="inner">
+            <h3>{{ start_date|date:"M d" }} - {{ end_date|date:"M d" }}</h3>
+            <p>Period</p>
+          </div>
+          <div class="icon">
+            <i class="fas fa-calendar"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Daily Breakdown -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-calendar-day"></i> Daily Sales Breakdown
+            </h3>
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" onclick="printReport('dailyBreakdown')">
+                <i class="fas fa-print"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body table-responsive p-0" id="dailyBreakdown">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Sales Count</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for day in daily_sales %}
+                <tr>
+                  <td>{{ day.date|date:"D, M d, Y" }}</td>
+                  <td><span class="badge badge-info">{{ day.count }}</span></td>
+                  <td><strong class="text-success">{{ day.total|floatformat:2 }} TZS</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted">No sales data</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot class="bg-light">
+                <tr>
+                  <td><strong>Total:</strong></td>
+                  <td><strong>{{ sales_count }}</strong></td>
+                  <td><strong class="text-success">{{ total_sales|floatformat:2 }} TZS</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method Breakdown -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-credit-card"></i> Payment Methods
+            </h3>
+          </div>
+          <div class="card-body">
+            {% if payment_breakdown %}
+              <canvas id="paymentChart" style="height: 250px;"></canvas>
+              
+              <table class="table table-sm mt-3">
+                <thead>
+                  <tr>
+                    <th>Method</th>
+                    <th>Count</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for payment in payment_breakdown %}
+                  <tr>
+                    <td>
+                      {% if payment.payment_method == 'cash' %}
+                        <i class="fas fa-money-bill text-success"></i> Cash
+                      {% elif payment.payment_method == 'mpesa' %}
+                        <i class="fas fa-mobile-alt text-primary"></i> M-Pesa
+                      {% elif payment.payment_method == 'bank' %}
+                        <i class="fas fa-university text-info"></i> Bank
+                      {% else %}
+                        <i class="fas fa-credit-card text-warning"></i> Credit
+                      {% endif %}
+                    </td>
+                    <td><span class="badge badge-secondary">{{ payment.count }}</span></td>
+                    <td><strong>{{ payment.total|floatformat:2 }} TZS</strong></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <div class="text-center text-muted py-4">
+                <i class="fas fa-credit-card fa-3x mb-3"></i>
+                <p>No payment data available</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Selling Products -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-trophy"></i> Top Selling Products
+            </h3>
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" onclick="printReport('topProducts')">
+                <i class="fas fa-print"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body table-responsive p-0" id="topProducts">
+            {% if top_products %}
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th width="50">Rank</th>
+                    <th>Product Name</th>
+                    <th>Units Sold</th>
+                    <th>Revenue</th>
+                    <th>% of Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for product in top_products %}
+                  <tr>
+                    <td>
+                      {% if forloop.counter == 1 %}
+                        <span class="badge badge-warning"><i class="fas fa-trophy"></i> #1</span>
+                      {% elif forloop.counter == 2 %}
+                        <span class="badge badge-secondary"><i class="fas fa-medal"></i> #2</span>
+                      {% elif forloop.counter == 3 %}
+                        <span class="badge badge-info"><i class="fas fa-medal"></i> #3</span>
+                      {% else %}
+                        <span class="badge badge-light">#{{ forloop.counter }}</span>
+                      {% endif %}
+                    </td>
+                    <td><strong>{{ product.bidhaa__jina }}</strong></td>
+                    <td>
+                      <span class="badge badge-success">{{ product.total_qty }} units</span>
+                    </td>
+                    <td>
+                      <strong class="text-success">{{ product.total_revenue|floatformat:2 }} TZS</strong>
+                    </td>
+                    <td>
+                      {% widthratio product.total_revenue total_sales 100 as percentage %}
+                      <div class="progress">
+                        <div class="progress-bar bg-success" style="width: {{ percentage }}%">
+                          {{ percentage }}%
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <div class="text-center text-muted p-5">
+                <i class="fas fa-box-open fa-3x mb-3"></i>
+                <p>No product sales data</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-download"></i> Export Options
+            </h3>
+          </div>
+          <div class="card-body">
+            <button type="button" class="btn btn-primary" onclick="window.print()">
+              <i class="fas fa-print"></i> Print Full Report
+            </button>
+            <button type="button" class="btn btn-success" onclick="exportToCSV()">
+              <i class="fas fa-file-csv"></i> Export to CSV
+            </button>
+            <button type="button" class="btn btn-info" onclick="exportToExcel()">
+              <i class="fas fa-file-excel"></i> Export to Excel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+// Toggle custom date inputs
+function toggleDateInputs() {
+    const reportType = document.getElementById('reportType').value;
+    const dateFromDiv = document.getElementById('dateFromDiv');
+    const dateToDiv = document.getElementById('dateToDiv');
+    
+    if (reportType === 'custom') {
+        dateFromDiv.style.display = 'block';
+        dateToDiv.style.display = 'block';
+    } else {
+        dateFromDiv.style.display = 'none';
+        dateToDiv.style.display = 'none';
+    }
+}
+
+// Payment Method Chart
+{% if payment_breakdown %}
+const paymentCtx = document.getElementById('paymentChart');
+if (paymentCtx) {
+    const paymentData = {
+        labels: [
+            {% for payment in payment_breakdown %}
+            '{{ payment.get_payment_method_display }}',
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for payment in payment_breakdown %}
+                {{ payment.total }},
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#28a745',  // Cash - Green
+                '#007bff',  // M-Pesa - Blue
+                '#17a2b8',  // Bank - Cyan
+                '#ffc107'   // Credit - Yellow
+            ]
+        }]
+    };
+    
+    new Chart(paymentCtx, {
+        type: 'doughnut',
+        data: paymentData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+{% endif %}
+
+// Print specific section
+function printReport(sectionId) {
+    const section = document.getElementById(sectionId);
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write('<html><head><title>Sales Report</title>');
+    printWindow.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h2>Sales Report - {{ start_date|date:"M d, Y" }} to {{ end_date|date:"M d, Y" }}</h2>');
+    printWindow.document.write(section.innerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// Export to CSV
+function exportToCSV() {
+    alert('CSV export feature coming soon!');
+    // Implement CSV export logic
+}
+
+// Export to Excel
+function exportToExcel() {
+    alert('Excel export feature coming soon!');
+    // Implement Excel export logic
+}
+</script>
+
+<style>
+@media print {
+    .no-print {
+        display: none;
+    }
+}
+</style>
+{% endblock main_content %}
