@@ -1,0 +1,48 @@
+{% extends 'hod_template/base_template.html' %}
+{% block page_title %}Edit {{ customer.name }}{% endblock page_title %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card card-success">
+          <div class="card-header">
+            <h3 class="card-title">Edit Customer: {{ customer.name }}</h3>
+          </div>
+          
+          <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="card-body">
+              {% if messages %}
+                {% for message in messages %}
+                  {% if message.tags == 'error' %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                  {% endif %}
+                  {% if message.tags == 'success' %}
+                    <div class="alert alert-success">{{ message }}</div>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+
+              {% for field in form %}
+                <div class="form-group">
+                  {{ field.errors }}
+                  {{ field.label_tag }}
+                  {{ field }}
+                </div>
+              {% endfor %}
+            </div>
+
+            <div class="card-footer">
+              <button type="submit" class="btn btn-success btn-block">Update Customer</button>
+              <a href="{% url 'view_customer' customer_id=customer.id %}" class="btn btn-secondary btn-block">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock main_content %}
