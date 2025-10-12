@@ -1,0 +1,278 @@
+{% extends 'hod_template/base_template.html' %}
+{% load custom_filters %}
+{% block page_title %}
+Process Return - {{ sale.sale_number }}
+{% endblock page_title %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1><i class="fas fa-undo"></i> Process Return</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'sales_history' %}">Sales History</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'view_sale' sale_id=sale.id %}">{{ sale.sale_number }}</a></li>
+          <li class="breadcrumb-item active">Process Return</li>
+        </ol>
+      </div>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row">
+      <!-- Sale Information -->
+      <div class="col-md-4">
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title">Sale Information</h3>
+          </div>
+          <div class="card-body">
+            <table class="table table-borderless table-sm">
+              <tr>
+                <th>Sale Number:</th>
+                <td><strong>{{ sale.sale_number }}</strong></td>
+              </tr>
+              <tr>
+                <th>Sale Date:</th>
+                <td>{{ sale.sale_date|date:"M d, Y" }}</td>
+              </tr>
+              <tr>
+                <th>Customer:</th>
+                <td>
+                  {% if sale.customer_name %}
+                    {{ sale.customer_name }}
+                  {% else %}
+                    Walk-in Customer
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <th>Total Amount:</th>
+                <td><strong class="text-success">{{ sale.total_amount|floatformat:2 }} TZS</strong></td>
+              </tr>
+              <tr>
+                <th>Payment:</th>
+                <td>{{ sale.get_payment_method_display }}</td>
+              </tr>
+            </table>
+
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-info-circle"></i> <strong>Note:</strong>
+              <p class="mb-0">Returned items will be restored to inventory.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Return Form -->
+      <div class="col-md-8">
+        <div class="card card-warning">
+          <div class="card-header">
+            <h3 class="card-title">Select Items to Return</h3>
+          </div>
+          
+          <form method="POST" id="returnForm">
+            {% csrf_token %}
+            
+            <div class="card-body">
+              <!-- Items Table -->
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="bg-light">
+                    <tr>
+                      <th width="50">Select</th>
+                      <th>Product</th>
+                      <th width="100">Sold Qty</th>
+                      <th width="120">Return Qty</th>
+                      <th width="120">Unit Price</th>
+                      <th width="120">Refund</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in sale_items %}
+                      <tr class="item-row" data-item-id="{{ item.id }}">
+                        <td class="text-center">
+                          <div class="icheck-primary">
+                            <input type="checkbox" id="select_{{ item.id }}" 
+                                   class="item-checkbox" 
+                                   onchange="toggleReturnQty({{ item.id }})">
+                            <label for="select_{{ item.id }}"></label>
+                          </div>
+                        </td>
+                        <td>
+                          <strong>{{ item.bidhaa.jina }}</strong>
+                          <br><small class="text-muted">Code: {{ item.bidhaa.code }}</small>
+                        </td>
+                        <td>
+                          <span class="badge badge-info">{{ item.quantity }}</span>
+                        </td>
+                        <td>
+                          <input type="number" 
+                                 name="return_qty_{{ item.id }}" 
+                                 id="return_qty_{{ item.id }}"
+                                 class="form-control form-control-sm return-qty" 
+                                 min="1" 
+                                 max="{{ item.quantity }}" 
+                                 value="0"
+                                 data-unit-price="{{ item.unit_price }}"
+                                 data-discount="{{ item.discount }}"
+                                 data-sold-qty="{{ item.quantity }}"
+                                 disabled
+                                 onchange="calculateRefund({{ item.id }})">
+                        </td>
+                        <td>{{ item.unit_price|floatformat:2 }} TZS</td>
+                        <td>
+                          <strong class="text-success refund-amount" id="refund_{{ item.id }}">
+                            0.00 TZS
+                          </strong>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot class="bg-light">
+                    <tr>
+                      <td colspan="5" class="text-right"><strong>Total Refund:</strong></td>
+                      <td>
+                        <strong class="text-danger" id="total_refund">0.00 TZS</strong>
+                        <input type="hidden" name="refund_amount" id="refund_amount_input" value="0">
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <!-- Return Details -->
+              <div class="row mt-4">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Return Reason <span class="text-danger">*</span></label>
+                    <select name="reason" class="form-control" required>
+                      <option value="">-- Select Reason --</option>
+                      <option value="defective">Defective Product</option>
+                      <option value="wrong_item">Wrong Item</option>
+                      <option value="changed_mind">Changed Mind</option>
+                      <option value="expired">Expired Product</option>
+                      <option value="damaged">Damaged in Transit</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea name="notes" class="form-control" rows="3" 
+                              placeholder="Additional information about the return..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <button type="submit" class="btn btn-warning btn-lg" id="submitBtn" disabled>
+                <i class="fas fa-check"></i> Process Return & Issue Refund
+              </button>
+              <a href="{% url 'view_sale' sale_id=sale.id %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times"></i> Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+function toggleReturnQty(itemId) {
+    const checkbox = document.getElementById(`select_${itemId}`);
+    const qtyInput = document.getElementById(`return_qty_${itemId}`);
+    
+    if (checkbox.checked) {
+        qtyInput.disabled = false;
+        qtyInput.value = qtyInput.max; // Set to max available
+        calculateRefund(itemId);
+    } else {
+        qtyInput.disabled = true;
+        qtyInput.value = 0;
+        calculateRefund(itemId);
+    }
+    
+    updateSubmitButton();
+}
+
+function calculateRefund(itemId) {
+    const qtyInput = document.getElementById(`return_qty_${itemId}`);
+    const qty = parseInt(qtyInput.value) || 0;
+    const unitPrice = parseFloat(qtyInput.dataset.unitPrice);
+    const discount = parseFloat(qtyInput.dataset.discount);
+    const soldQty = parseFloat(qtyInput.dataset.soldQty);
+    
+    // Calculate refund: (unit_price * qty) - (discount / sold_qty * qty)
+    const discountPerUnit = discount / soldQty;
+    const refund = (unitPrice * qty) - (discountPerUnit * qty);
+    
+    document.getElementById(`refund_${itemId}`).textContent = refund.toFixed(2) + ' TZS';
+    
+    calculateTotalRefund();
+}
+
+function calculateTotalRefund() {
+    let total = 0;
+    
+    document.querySelectorAll('.return-qty').forEach(input => {
+        if (!input.disabled && parseInt(input.value) > 0) {
+            const qty = parseInt(input.value);
+            const unitPrice = parseFloat(input.dataset.unitPrice);
+            const discount = parseFloat(input.dataset.discount);
+            const soldQty = parseFloat(input.dataset.soldQty);
+            
+            const discountPerUnit = discount / soldQty;
+            const refund = (unitPrice * qty) - (discountPerUnit * qty);
+            total += refund;
+        }
+    });
+    
+    document.getElementById('total_refund').textContent = total.toFixed(2) + ' TZS';
+    document.getElementById('refund_amount_input').value = total.toFixed(2);
+}
+
+function updateSubmitButton() {
+    const anyChecked = Array.from(document.querySelectorAll('.item-checkbox')).some(cb => cb.checked);
+    document.getElementById('submitBtn').disabled = !anyChecked;
+}
+
+// Form validation
+document.getElementById('returnForm').addEventListener('submit', function(e) {
+    const anyChecked = Array.from(document.querySelectorAll('.item-checkbox')).some(cb => cb.checked);
+    
+    if (!anyChecked) {
+        e.preventDefault();
+        alert('Please select at least one item to return');
+        return false;
+    }
+    
+    const reason = document.querySelector('select[name="reason"]').value;
+    if (!reason) {
+        e.preventDefault();
+        alert('Please select a return reason');
+        return false;
+    }
+    
+    if (!confirm('Are you sure you want to process this return? This action will restore the items to inventory.')) {
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
+{% endblock main_content %}
