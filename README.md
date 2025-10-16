@@ -47,7 +47,7 @@ A complete, production-ready Point of Sale (POS), inventory management, and sale
 
 1. **Clone the Repository**
 ```bash
-git clone https://github.com/yourusername/bidhaa-management-system.git
+git clone https://github.com/salva669/shopping.git
 cd bidhaa-management-system
 ```
 
