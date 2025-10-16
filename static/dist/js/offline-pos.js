@@ -151,4 +151,24 @@ class OfflinePOS {
   document.addEventListener('DOMContentLoaded', async () => {
     offlinePOS = new OfflinePOS(dbManager, syncManager);
     await offlinePOS.init();
+    
+    // If online and no data, download first
+    const bidhaas = await dbManager.getAll('bidhaas');
+    if (navigator.onLine && bidhaas.length === 0) {
+      console.log('No local data found. Downloading from server...');
+      await syncManager.downloadData();
+    }
+    
+    // Load products
+    await offlinePOS.loadProducts();
+    
+    // Update cart display
+    offlinePOS.updateCartDisplay();
+    
+    // Enable/disable checkout button
+    setInterval(() => {
+      const btn = document.getElementById('checkout-btn');
+      btn.disabled = offlinePOS.cart.length === 0;
+      document.getElementById('cart-count').textContent = offlinePOS.cart.length + ' items';
+    }, 500);
   });
