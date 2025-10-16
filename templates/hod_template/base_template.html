@@ -122,6 +122,18 @@
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
 
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/js/service-worker.js')
+      .then(registration => {
+        console.log('Service Worker registered:', registration);
+      })
+      .catch(error => {
+        console.log('Service Worker registration failed:', error);
+      });
+  }
+  </script>
+
 {% block custom_js %}
 {% endblock custom_js %}
 
