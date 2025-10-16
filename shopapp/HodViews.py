@@ -1129,3 +1129,7 @@ def sales_reports(request):
     }
     
     return render(request, 'hod_template/sales_reports_template.html', context)
+
+@login_required
+def offline_pos(request):
+    return render(request, 'hod_template/offline_pos_template.html')

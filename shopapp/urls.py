@@ -64,6 +64,9 @@ urlpatterns = [
     # Reports URLs
     path('sales_reports/', HodViews.sales_reports, name='sales_reports'),
 
+    # offline POS
+    path('offline-pos/', HodViews.offline_pos, name='offline_pos'),
+
 #     Staff URL Path
     path('staff_home', StaffViews.staff_home, name="staff_home"),
     path('staff_apply_leave', StaffViews.staff_apply_leave, name="staff_apply_leave"),
