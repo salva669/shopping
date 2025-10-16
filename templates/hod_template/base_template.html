@@ -124,7 +124,7 @@
 
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/static/js/service-worker.js')
+    navigator.serviceWorker.register('/static/dist/js/service-worker.js')
       .then(registration => {
         console.log('Service Worker registered:', registration);
       })
@@ -132,7 +132,7 @@
         console.log('Service Worker registration failed:', error);
       });
   }
-  </script>
+</script>
 
 {% block custom_js %}
 {% endblock custom_js %}
