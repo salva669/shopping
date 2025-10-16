@@ -376,10 +376,10 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history and updates.
 
 ## Contact
 
-- Email: your-email@example.com
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Website: yourwebsite.com
+- Email: henrymkama@gmail.com
+- GitHub: [@salva669](https://github.com/salva669)
+
 
 ---
 
-Made with by [Your Name/Organization]
+Made with by [ChiboTech]
